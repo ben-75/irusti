@@ -1,0 +1,11 @@
+[package]
+name = "irusti"
+version = "0.1.0"
+authors = ["ben75"]
+
+[dependencies]
+clap = "~2.31"
+rust-ini = "0.11"
+log = "0.4"
+log4rs = "0.8.0"
+rocksdb = "0.10.0"

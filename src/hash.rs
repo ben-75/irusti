@@ -1,0 +1,6 @@
+
+const RADIX :u8 = 3;
+const MAX_TRIT_VALUE :u8 = (RADIX - 1) / 2;
+const MIN_TRIT_VALUE :u8 = - MAX_TRIT_VALUE;
+const NUMBER_OF_TRITS_IN_A_BYTE :u8 = 5;
+const NUMBER_OF_TRITS_IN_A_TRYTE :u8 = 3;
