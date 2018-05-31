@@ -3,6 +3,8 @@ use configuration;
 use configuration::Configuration;
 use configuration::DefaultConfSettings;
 use tangle::Tangle;
+use txhash::TxHash;
+use std::str::FromStr;
 
 pub struct Iota {
     configuration: Configuration,
@@ -23,6 +25,11 @@ impl Iota {
             if coo_address.eq(configuration::TESTNET_COORDINATOR_ADDRESS) {
                 warn!("No coordinator address given for testnet. Defaulting to {}",configuration::TESTNET_COORDINATOR_ADDRESS);
             }
+            let coo_hash = TxHash::from_str(coo_address.as_ref());
+            //info!("Coo hash {}",coo_hash);
+            let coo_str = coo_hash.unwrap().to_string();
+            info!("Coo str {:?}",coo_str);
+
         }
         let mut effective_db_path = configuration.get_param(DefaultConfSettings::DbPath).unwrap();
         if configuration.get_flag(DefaultConfSettings::TESTNET) {

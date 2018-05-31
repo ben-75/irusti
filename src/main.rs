@@ -10,6 +10,7 @@ use iota::Iota;
 pub mod configuration;
 pub mod iota;
 pub mod tangle;
+pub mod txhash;
 
 const APP_NAME : &'static str = "IRustI";
 const VERSION : &'static str = "1.4.2.4";
@@ -204,13 +205,13 @@ fn main() {
 
     if configuration.get_param(configuration::DefaultConfSettings::COORDINATOR).is_some() {
         if !configuration.booling_param(configuration::DefaultConfSettings::TESTNET){
-            warn!("coordinator-address is ignored. (it requires the --testnet flag");
+            warn!("coordinator-address is ignored. (it requires the --testnet flag)");
         }
     }
 
     if configuration.booling_param(configuration::DefaultConfSettings::DontValidateTestnetMilestoneSig){
         if !configuration.booling_param(configuration::DefaultConfSettings::TESTNET){
-            warn!("testnet-no-coo-validation is ignored. (it requires the --testnet flag");
+            warn!("testnet-no-coo-validation is ignored. (it requires the --testnet flag)");
         }
     }
     let tmp = configuration.get_param(configuration::DefaultConfSettings::DbPath).unwrap();
