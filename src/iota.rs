@@ -25,11 +25,18 @@ impl Iota {
             if coo_address.eq(configuration::TESTNET_COORDINATOR_ADDRESS) {
                 warn!("No coordinator address given for testnet. Defaulting to {}",configuration::TESTNET_COORDINATOR_ADDRESS);
             }
-            let coo_hash = TxHash::from_str(coo_address.as_ref());
+            let coo_hash = TxHash::from_str(coo_address.as_ref()).unwrap();
+
             //info!("Coo hash {}",coo_hash);
-            let coo_str = coo_hash.unwrap().to_string();
+            let coo_str = coo_hash.to_string();
             info!("Coo str {:?}",coo_str);
 
+            info!("Coo trailing zeros {}",coo_hash.trailing_zeros());
+            let h1 = TxHash::from_str("999999999999999999999999999999999999999999999999999999999999999999999999999999999").unwrap();
+            info!("Null hash trailing zeros {} for {}",h1.trailing_zeros(),h1.to_string());
+
+            let h1 = TxHash::from_str("9999999999999999999999999999999999999999999999999999999999999999999999999999999Z9").unwrap();
+            info!("other trailing zeros {} for {}",h1.trailing_zeros(),h1.to_string());
         }
         let mut effective_db_path = configuration.get_param(DefaultConfSettings::DbPath).unwrap();
         if configuration.get_flag(DefaultConfSettings::TESTNET) {

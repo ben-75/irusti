@@ -1,4 +1,5 @@
 extern crate rocksdb;
+extern crate num_cpus;
 use self::rocksdb::{DB, Options};
 
 
@@ -16,7 +17,10 @@ impl Tangle {
         opts.set_max_open_files(10000);
         opts.set_max_background_compactions(1);
         opts.set_allow_concurrent_memtable_write(true);
+
         //TODO : terminate setup
+        let num = num_cpus::get();
+        info!("Number of cpus: {}", num);
         let db :DB = match DB::open(&opts, db_path) {
             Ok(database) => database,
             Err(error) => {
