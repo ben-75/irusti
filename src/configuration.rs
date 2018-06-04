@@ -233,19 +233,19 @@ impl Configuration {
         };
     }
 
-    fn string_it(&self, k :&str) -> String {
-        self.get_conf_value(k).unwrap_or("".to_string())
+    pub fn string_it(&self, k :&str) -> Option<String> {
+        self.get_conf_value(k)
     }
 
     pub fn floating(&self, k :&str) -> f32 {
-         match f32::from_str(self.get_conf_value(k).unwrap_or(("0.0".to_string())).as_ref()) {
+         match f32::from_str(self.get_conf_value(k).unwrap_or("0.0".to_string()).as_ref()) {
              Ok(x) => x,
              _ => 0.0,
          }
     }
 
     pub fn integer(&self, k :&str) -> i32 {
-        return i32::from_str(self.get_conf_value(k).unwrap_or(("0".to_string())).as_ref()).unwrap_or(0);
+        return i32::from_str(self.get_conf_value(k).unwrap_or("0".to_string()).as_ref()).unwrap_or(0);
     }
 
     pub fn booling(&self, k :&str) -> bool {
@@ -253,10 +253,10 @@ impl Configuration {
     }
 
     pub fn long_num(&self, k :&str) -> i64 {
-        return i64::from_str(self.get_conf_value(k).unwrap_or(("0".to_string())).as_ref()).unwrap_or(0);
+        return i64::from_str(self.get_conf_value(k).unwrap_or("0".to_string()).as_ref()).unwrap_or(0);
     }
 
-    fn stringify_param(&self, d :DefaultConfSettings) -> String {
+    pub fn stringify_param(&self, d :DefaultConfSettings) -> Option<String> {
         return self.string_it(d.to_string().as_ref());
     }
 

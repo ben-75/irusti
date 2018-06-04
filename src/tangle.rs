@@ -43,7 +43,7 @@ impl Tangle {
     pub fn shutdown(path :String){
         let opt= Options::default();
         match DB::destroy(&opt, path){
-            Ok(info) => info!("Shutdown database."),
+            Ok(_info) => info!("Shutdown database."),
             Err(error) => error!("Fail to shutdown db. {:?}", error),
         }
     }

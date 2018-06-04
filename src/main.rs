@@ -12,6 +12,7 @@ pub mod iota;
 pub mod tangle;
 pub mod txhash;
 pub mod curl;
+pub mod zmq_wrapper;
 
 const APP_NAME : &'static str = "IRustI";
 const VERSION : &'static str = "1.4.2.4";
@@ -85,7 +86,7 @@ fn main() {
             .value_name("EXPORT")
             .help("export")
             .takes_value(false))
-        .arg(Arg::with_name("zmq-enabled")
+        .arg(Arg::with_name("zmqenabled")
             .long("zmq-enabled")
             .value_name("ZMQ_ENABLED")
             .help("enable ZMQ")

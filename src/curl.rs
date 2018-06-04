@@ -97,7 +97,7 @@ impl Curl {
         let mut scratchpad_index = 0;
         let mut prev_scratchpad_index = 0;
         let mut scratchpad :[i8;STATE_LENGTH] = [0;STATE_LENGTH];
-        for round in 0..self.number_of_rounds {
+        for _round in 0..self.number_of_rounds {
             scratchpad[0..STATE_LENGTH].copy_from_slice(&self.state[0..STATE_LENGTH]);
             for state_index in 0..STATE_LENGTH {
                 prev_scratchpad_index = scratchpad_index;

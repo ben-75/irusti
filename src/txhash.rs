@@ -84,7 +84,6 @@ impl TxHash {
 */
 
     pub fn to_bits(trytes :String, mut bits :Vec<bool>) {
-        bits.extend_from_slice(&[false,false,false,false,false]);
         for c in trytes.chars() {
             match c {
                         '9' => bits.extend_from_slice(&[false,false,false,false,false,false]),
@@ -222,7 +221,7 @@ impl TxHash {
                 (0,-1,0) => {arr[i*5]=false;arr[i*5+1]=false;arr[i*5+2]=false;arr[i*5+3]=true;arr[i*5+4]=true},   //1
                 (1,-1,0) => {arr[i*5]=true;arr[i*5+1]=false;arr[i*5+2]=false;arr[i*5+3]=true;arr[i*5+4]=true},    //1
                 (-1,0,0) => {arr[i*5]=false;arr[i*5+1]=true;arr[i*5+2]=false;arr[i*5+3]=true;arr[i*5+4]=true},    //2
-                _ => {info!("i={} integers[i*3]={},integers[i*3+1]={},integers[i*3+2]={}",i,integers[i*3],integers[i*3+1],integers[i*3+2]);return Err(())},
+                _ => {error!("i={} integers[i*3]={},integers[i*3+1]={},integers[i*3+2]={}",i,integers[i*3],integers[i*3+1],integers[i*3+2]);return Err(())},
             }
         }
         Ok(TxHash{arr})
