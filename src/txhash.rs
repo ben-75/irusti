@@ -1,9 +1,13 @@
 use std::str::FromStr;
+use curl::SpongeMode;
+use curl::Curl;
+use curl::Sponge;
 
 const RADIX :u8 = 3;
 const MAX_TRIT_VALUE :u8 = (RADIX - 1) / 2;
 const NUMBER_OF_TRITS_IN_A_BYTE :u8 = 5;
 const NUMBER_OF_TRITS_IN_A_TRYTE :u8 = 3;
+const SIZE_IN_TRITS :usize = 243;
 
 pub struct TxHash{
     arr :[bool;405],
@@ -30,6 +34,194 @@ impl TxHash {
             }
         };
         zeros
+    }
+
+    pub fn compute(trytes : String, mode :SpongeMode) -> Result<TxHash,()> {
+        let sz = 3*trytes.len();
+        let mut integers :Vec<i8> = Vec::with_capacity(sz);
+        integers = TxHash::to_i8(trytes,integers);
+        let mut curl = match mode {
+            SpongeMode::CURL_P27 => {Curl::newCurlP27()},
+            _ => Curl::newCurlP81(),
+        };
+        curl.reset();
+        curl.absorb(integers,0,sz);
+        TxHash::from_i8(curl.squeeze(0,243))
+    }
+
+    /*
+000		    9  (false,false,false,false,false,false)
+100		    A  (true,true,false,false,false,false)
+-110		B  (true,false,true,true,false,false)
+010		    C  (false,false,true,true,false,false)
+110		    D  (true,true,true,true,false,false)
+-1-11		E  (true,false,true,false,true,true)
+0-11		F  (false,false,true,false,true,true)
+1-11		G  (true,true,true,false,true,true)
+-101		H  (true,false,false,false,true,true)
+001		    I  (false,false,false,false,true,true)
+101		    J  (true,true,false,false,true,true)
+-111		K  (true,false,true,true,true,true)
+011		    L  (false,false,true,true,true,true)
+111		    M  (true,true,true,true,true,true)
+-1-1-1	    N  (true,false,true,false,true,false)
+0-1-1		O  (false,false,true,false,true,false)
+1-1-1		P  (true,true,true,false,true,false)
+-10-1		Q  (true,false,false,false,true,false)
+00-1		R  (false,false,false,false,true,false)
+10-1		S  (true,true,false,false,true,false)
+-11-1		T  (true,false,true,true,true,false)
+01-1		U  (false,false,true,true,true,false)
+11-1		V  (true,true,true,true,true,false)
+-1-10		W  (true,false,true,false,false,false)
+0-10		X  (false,false,true,false,false,false)
+1-10		Y  (true,true,true,false,false,false)
+-100		Z  (true,false,false,false,false,false)
+*/
+
+    pub fn to_bits(trytes :String, mut bits :Vec<bool>) {
+        bits.extend_from_slice(&[false,false,false,false,false]);
+        for c in trytes.chars() {
+            match c {
+                        '9' => bits.extend_from_slice(&[false,false,false,false,false,false]),
+                        'A' => bits.extend_from_slice(&[true,true,false,false,false,false]),
+                        'B' => bits.extend_from_slice(&[true,false,true,true,false,false]),
+                        'C' => bits.extend_from_slice(&[false,false,true,true,false,false]),
+                        'D' => bits.extend_from_slice(&[true,true,true,true,false,false]),
+                        'E' => bits.extend_from_slice(&[true,false,true,false,true,true]),
+                    	'F' => bits.extend_from_slice(&[false,false,true,false,true,true]),
+                        'G' => bits.extend_from_slice(&[true,true,true,false,true,true]),
+                        'H' => bits.extend_from_slice(&[true,false,false,false,true,true]),
+                        'I' => bits.extend_from_slice(&[false,false,false,false,true,true]),
+                        'J' => bits.extend_from_slice(&[true,true,false,false,true,true]),
+                        'K' => bits.extend_from_slice(&[true,false,true,true,true,true]),
+                        'L' => bits.extend_from_slice(&[false,false,true,true,true,true]),
+                        'M' => bits.extend_from_slice(&[true,true,true,true,true,true]),
+                        'N' => bits.extend_from_slice(&[true,false,true,false,true,false]),
+                        'O' => bits.extend_from_slice(&[false,false,true,false,true,false]),
+                        'P' => bits.extend_from_slice(&[true,true,true,false,true,false]),
+                        'Q' => bits.extend_from_slice(&[true,false,false,false,true,false]),
+                        'R' => bits.extend_from_slice(&[false,false,false,false,true,false]),
+                        'S' => bits.extend_from_slice(&[true,true,false,false,true,false]),
+                        'T' => bits.extend_from_slice(&[true,false,true,true,true,false]),
+                    	'U' => bits.extend_from_slice(&[false,false,true,true,true,false]),
+                        'V' => bits.extend_from_slice(&[true,true,true,true,true,false]),
+                        'W' => bits.extend_from_slice(&[true,false,true,false,false,false]),
+                        'X' => bits.extend_from_slice(&[false,false,true,false,false,false]),
+                        'Y' => bits.extend_from_slice(&[true,true,true,false,false,false]),
+                        'Z' => bits.extend_from_slice(&[true,false,false,false,false,false]),
+                        _ => (),
+            }
+        }
+    }
+
+    pub fn to_2bits(trytes :String, mut bits :Vec<(bool,bool)>) {
+        for c in trytes.chars() {
+            match c {
+                '9' => bits.extend_from_slice(&[(false,false),(false,false),(false,false)]),
+                'A' => bits.extend_from_slice(&[(true,true),(false,false),(false,false)]),
+                'B' => bits.extend_from_slice(&[(true,false),(true,true),(false,false)]),
+                'C' => bits.extend_from_slice(&[(false,false),(true,true),(false,false)]),
+                'D' => bits.extend_from_slice(&[(true,true),(true,true),(false,false)]),
+                'E' => bits.extend_from_slice(&[(true,false),(true,false),(true,true)]),
+                'F' => bits.extend_from_slice(&[(false,false),(true,false),(true,true)]),
+                'G' => bits.extend_from_slice(&[(true,true),(true,false),(true,true)]),
+                'H' => bits.extend_from_slice(&[(true,false),(false,false),(true,true)]),
+                'I' => bits.extend_from_slice(&[(false,false),(false,false),(true,true)]),
+                'J' => bits.extend_from_slice(&[(true,true),(false,false),(true,true)]),
+                'K' => bits.extend_from_slice(&[(true,false),(true,true),(true,true)]),
+                'L' => bits.extend_from_slice(&[(false,false),(true,true),(true,true)]),
+                'M' => bits.extend_from_slice(&[(true,true),(true,true),(true,true)]),
+                'N' => bits.extend_from_slice(&[(true,false),(true,false),(true,false)]),
+                'O' => bits.extend_from_slice(&[(false,false),(true,false),(true,false)]),
+                'P' => bits.extend_from_slice(&[(true,true),(true,false),(true,false)]),
+                'Q' => bits.extend_from_slice(&[(true,false),(false,false),(true,false)]),
+                'R' => bits.extend_from_slice(&[(false,false),(false,false),(true,false)]),
+                'S' => bits.extend_from_slice(&[(true,true),(false,false),(true,false)]),
+                'T' => bits.extend_from_slice(&[(true,false),(true,true),(true,false)]),
+                'U' => bits.extend_from_slice(&[(false,false),(true,true),(true,false)]),
+                'V' => bits.extend_from_slice(&[(true,true),(true,true),(true,false)]),
+                'W' => bits.extend_from_slice(&[(true,false),(true,false),(false,false)]),
+                'X' => bits.extend_from_slice(&[(false,false),(true,false),(false,false)]),
+                'Y' => bits.extend_from_slice(&[(true,true),(true,false),(false,false)]),
+                'Z' => bits.extend_from_slice(&[(true,false),(false,false),(false,false)]),
+                _ => (),
+            }
+        }
+    }
+
+
+    pub fn to_i8(trytes :String, mut integers :Vec<i8>) -> Vec<i8> {
+        for c in trytes.chars() {
+            match c {
+                '9' => integers.extend_from_slice(&[0,0,0]),
+                'A' => integers.extend_from_slice(&[1,0,0]),
+                'B' => integers.extend_from_slice(&[-1,1,0]),
+                'C' => integers.extend_from_slice(&[0,1,0]),
+                'D' => integers.extend_from_slice(&[1,1,0]),
+                'E' => integers.extend_from_slice(&[-1,-1,1]),
+                'F' => integers.extend_from_slice(&[0,-1,1]),
+                'G' => integers.extend_from_slice(&[1,-1,1]),
+                'H' => integers.extend_from_slice(&[-1,0,1]),
+                'I' => integers.extend_from_slice(&[0,0,1]),
+                'J' => integers.extend_from_slice(&[1,0,1]),
+                'K' => integers.extend_from_slice(&[-1,1,1]),
+                'L' => integers.extend_from_slice(&[0,1,1]),
+                'M' => integers.extend_from_slice(&[1,1,1]),
+                'N' => integers.extend_from_slice(&[-1,-1,-1]),
+                'O' => integers.extend_from_slice(&[0,-1,-1]),
+                'P' => integers.extend_from_slice(&[1,-1,-1]),
+                'Q' => integers.extend_from_slice(&[-1,0,-1]),
+                'R' => integers.extend_from_slice(&[0,0,-1]),
+                'S' => integers.extend_from_slice(&[1,0,-1]),
+                'T' => integers.extend_from_slice(&[-1,1,-1]),
+                'U' => integers.extend_from_slice(&[0,1,-1]),
+                'V' => integers.extend_from_slice(&[1,1,-1]),
+                'W' => integers.extend_from_slice(&[-1,-1,0]),
+                'X' => integers.extend_from_slice(&[0,-1,0]),
+                'Y' => integers.extend_from_slice(&[1,-1,0]),
+                'Z' => integers.extend_from_slice(&[-1,0,0]),
+                _ => (),
+            }
+        };
+        integers
+    }
+
+    pub fn from_i8(integers :[i8;243]) -> Result<TxHash, ()> {
+        let mut arr :[bool;405] = [false;405];
+        for i in 0..81 {
+            match (integers[i*3],integers[i*3+1],integers[i*3+2]) {
+                (0,0,0) => {arr[i*5]=false;arr[i*5+1]=false;arr[i*5+2]=false;arr[i*5+3]=false;arr[i*5+4]=false}, //3
+                (1,0,0) => {arr[i*5]=true;arr[i*5+1]=false;arr[i*5+2]=false;arr[i*5+3]=false;arr[i*5+4]=false},  //2
+                (-1,1,0) => {arr[i*5]=false;arr[i*5+1]=true;arr[i*5+2]=false;arr[i*5+3]=false;arr[i*5+4]=false},  //1
+                (0,1,0) => {arr[i*5]=true;arr[i*5+1]=true;arr[i*5+2]=false;arr[i*5+3]=false;arr[i*5+4]=false},   //1
+                (1,1,0) => {arr[i*5]=false;arr[i*5+1]=false;arr[i*5+2]=true;arr[i*5+3]=false;arr[i*5+4]=false},  //1
+                (-1,-1,1) => {arr[i*5]=true;arr[i*5+1]=false;arr[i*5+2]=true;arr[i*5+3]=false;arr[i*5+4]=false},   //0
+                (0,-1,1) => {arr[i*5]=false;arr[i*5+1]=true;arr[i*5+2]=true;arr[i*5+3]=false;arr[i*5+4]=false},   //0
+                (1,-1,1) => {arr[i*5]=true;arr[i*5+1]=true;arr[i*5+2]=true;arr[i*5+3]=false;arr[i*5+4]=false},    //0
+                (-1,0,1) => {arr[i*5]=false;arr[i*5+1]=false;arr[i*5+2]=false;arr[i*5+3]=true;arr[i*5+4]=false},  //0
+                (0,0,1) => {arr[i*5]=true;arr[i*5+1]=false;arr[i*5+2]=false;arr[i*5+3]=true;arr[i*5+4]=false},   //0
+                (1,0,1) => {arr[i*5]=false;arr[i*5+1]=true;arr[i*5+2]=false;arr[i*5+3]=true;arr[i*5+4]=false},   //0
+                (-1,1,1) => {arr[i*5]=true;arr[i*5+1]=true;arr[i*5+2]=false;arr[i*5+3]=true;arr[i*5+4]=false},    //0
+                (0,1,1) => {arr[i*5]=false;arr[i*5+1]=false;arr[i*5+2]=true;arr[i*5+3]=true;arr[i*5+4]=false},   //0
+                (1,1,1) => {arr[i*5]=true;arr[i*5+1]=false;arr[i*5+2]=true;arr[i*5+3]=true;arr[i*5+4]=false},    //0
+                (-1,-1,-1) => {arr[i*5]=false;arr[i*5+1]=true;arr[i*5+2]=true;arr[i*5+3]=true;arr[i*5+4]=false},    //0
+                (0,-1,-1) => {arr[i*5]=true;arr[i*5+1]=true;arr[i*5+2]=true;arr[i*5+3]=true;arr[i*5+4]=false},     //0
+                (1,-1,-1) => {arr[i*5]=false;arr[i*5+1]=false;arr[i*5+2]=false;arr[i*5+3]=false;arr[i*5+4]=true},  //0
+                (-1,0,-1) => {arr[i*5]=true;arr[i*5+1]=false;arr[i*5+2]=false;arr[i*5+3]=false;arr[i*5+4]=true},   //0
+                (0,0,-1) => {arr[i*5]=false;arr[i*5+1]=true;arr[i*5+2]=false;arr[i*5+3]=false;arr[i*5+4]=true},   //0
+                (1,0,-1) => {arr[i*5]=true;arr[i*5+1]=true;arr[i*5+2]=false;arr[i*5+3]=false;arr[i*5+4]=true},    //0
+                (-1,1,-1) => {arr[i*5]=false;arr[i*5+1]=false;arr[i*5+2]=true;arr[i*5+3]=false;arr[i*5+4]=true},   //0
+                (0,1,-1) => {arr[i*5]=true;arr[i*5+1]=false;arr[i*5+2]=true;arr[i*5+3]=false;arr[i*5+4]=true},    //0
+                (1,1,-1) => {arr[i*5]=false;arr[i*5+1]=true;arr[i*5+2]=true;arr[i*5+3]=false;arr[i*5+4]=true},    //0
+                (-1,-1,0) => {arr[i*5]=true;arr[i*5+1]=true;arr[i*5+2]=true;arr[i*5+3]=false;arr[i*5+4]=true},     //1
+                (0,-1,0) => {arr[i*5]=false;arr[i*5+1]=false;arr[i*5+2]=false;arr[i*5+3]=true;arr[i*5+4]=true},   //1
+                (1,-1,0) => {arr[i*5]=true;arr[i*5+1]=false;arr[i*5+2]=false;arr[i*5+3]=true;arr[i*5+4]=true},    //1
+                (-1,0,0) => {arr[i*5]=false;arr[i*5+1]=true;arr[i*5+2]=false;arr[i*5+3]=true;arr[i*5+4]=true},    //2
+                _ => {info!("i={} integers[i*3]={},integers[i*3+1]={},integers[i*3+2]={}",i,integers[i*3],integers[i*3+1],integers[i*3+2]);return Err(())},
+            }
+        }
+        Ok(TxHash{arr})
     }
 }
 
@@ -122,4 +314,5 @@ impl FromStr for TxHash {
             _ => Err(())
          }
     }
+
 }

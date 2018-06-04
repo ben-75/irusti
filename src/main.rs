@@ -11,6 +11,7 @@ pub mod configuration;
 pub mod iota;
 pub mod tangle;
 pub mod txhash;
+pub mod curl;
 
 const APP_NAME : &'static str = "IRustI";
 const VERSION : &'static str = "1.4.2.4";
