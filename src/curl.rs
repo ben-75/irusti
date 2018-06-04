@@ -6,13 +6,13 @@ pub trait Sponge {
 
 #[derive(PartialEq)]
 pub enum SpongeMode {
-    CURL_P27,
-    CURL_P81,
+    CurlP27,
+    CurlP81,
     KERL
 }
 
 pub struct Curl {
-    numberOfRounds :i8,
+    number_of_rounds:i8,
     state :[i8;729]
 }
 
@@ -34,7 +34,7 @@ impl Sponge for Curl {
         } while ((length -= HASH_LENGTH) > 0);
         */
         while {
-            let l = if (length < HASH_LENGTH) {length} else {HASH_LENGTH};
+            let l = if length < HASH_LENGTH {length} else {HASH_LENGTH};
             self.state[0..l].copy_from_slice(&trites_to_calculate[offset..offset+l]);
             self.transform();
             offset += HASH_LENGTH;
@@ -47,7 +47,7 @@ impl Sponge for Curl {
     fn squeeze(&mut self, mut offset: usize,mut length: usize) -> [i8;243] {
         let mut trits :[i8;243] = [0;243];
         while {
-            let l = if (length < HASH_LENGTH) {length} else {HASH_LENGTH};
+            let l = if length < HASH_LENGTH {length} else {HASH_LENGTH};
 
             trits[offset..offset+l].copy_from_slice(&self.state[0..l]);
             self.transform();
@@ -63,16 +63,16 @@ impl Sponge for Curl {
 
 impl Curl {
 
-    pub fn newCurlP81() -> Curl {
+    pub fn new_curl_p81() -> Curl {
         Curl {
-            numberOfRounds :81,
+            number_of_rounds:81,
             state : [0;STATE_LENGTH]
         }
     }
 
-    pub fn newCurlP27() -> Curl {
+    pub fn new_curl_p27() -> Curl {
         Curl {
-            numberOfRounds :27,
+            number_of_rounds:27,
             state : [0;STATE_LENGTH]
         }
     }
@@ -97,11 +97,11 @@ impl Curl {
         let mut scratchpad_index = 0;
         let mut prev_scratchpad_index = 0;
         let mut scratchpad :[i8;STATE_LENGTH] = [0;STATE_LENGTH];
-        for round in 0..self.numberOfRounds {
+        for round in 0..self.number_of_rounds {
             scratchpad[0..STATE_LENGTH].copy_from_slice(&self.state[0..STATE_LENGTH]);
             for state_index in 0..STATE_LENGTH {
                 prev_scratchpad_index = scratchpad_index;
-                scratchpad_index = if (scratchpad_index < 365) { scratchpad_index + 364 } else { scratchpad_index - 365 };
+                scratchpad_index = if scratchpad_index < 365 { scratchpad_index + 364 } else { scratchpad_index - 365 };
                 self.state[state_index] = TRUTH_TABLE[(scratchpad[prev_scratchpad_index] + (scratchpad[scratchpad_index] << 2) + 5) as usize];
             }
         }
