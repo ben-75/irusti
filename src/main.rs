@@ -6,6 +6,7 @@ extern crate log4rs;
 use clap::{App, Arg};
 use configuration::Configuration;
 use iota::Iota;
+use tangle::Tangle;
 
 pub mod configuration;
 pub mod iota;
@@ -216,9 +217,8 @@ fn main() {
             warn!("testnet-no-coo-validation is ignored. (it requires the --testnet flag)");
         }
     }
-    let tmp = configuration.get_param(configuration::DefaultConfSettings::DbPath).unwrap();
-    {
-        let iota = Iota::new(configuration);
-    }
-    Iota::shutdown(tmp);
+
+    let iota = Iota::new(configuration);
+
+    iota.shutdown();
 }

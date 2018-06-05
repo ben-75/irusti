@@ -10,7 +10,7 @@ use std::str::FromStr;
 pub struct Iota {
     configuration: Configuration,
     tangle :Tangle,
-
+    message_q :MessageQ,
 }
 
 impl Iota {
@@ -53,11 +53,13 @@ impl Iota {
             Configuration::booling_param(&configuration, DefaultConfSettings::ZmqEnabled)
         );
 
+        message_q.publish("hello queue".to_string());
 
-        Iota{configuration, tangle}
+        Iota{configuration, tangle, message_q}
     }
 
-    pub fn shutdown(db_path :String){
-        Tangle::shutdown(db_path);
+    pub fn shutdown(&self){
+        self.message_q.shutdown();
+        self.tangle.shutdown();
     }
 }

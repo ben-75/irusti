@@ -4,12 +4,14 @@ use self::rocksdb::{DB, Options};
 
 
 pub struct Tangle {
-    db :DB
+    db :DB,
+    db_path :String,
 }
 
 impl Tangle {
 
     pub fn new(db_path: String) -> Tangle {
+        let db_path_2 = db_path.clone();
         let mut opts = Options::default();
         opts.create_if_missing(true);
         opts.create_missing_column_families(true);
@@ -21,7 +23,7 @@ impl Tangle {
         //TODO : terminate setup
         let num = num_cpus::get();
         info!("Number of cpus: {}", num);
-        let db :DB = match DB::open(&opts, db_path) {
+        let db :DB = match DB::open(&opts, db_path_2) {
             Ok(database) => database,
             Err(error) => {
                 error!("Cannot open database: {}", error);
@@ -37,12 +39,12 @@ impl Tangle {
 
         db.delete(b"my key").unwrap();
 
-        Tangle{db}
+        Tangle{db, db_path}
     }
 
-    pub fn shutdown(path :String){
+    pub fn shutdown(&self){
         let opt= Options::default();
-        match DB::destroy(&opt, path){
+        match DB::destroy(&opt, &self.db_path){
             Ok(_info) => info!("Shutdown database."),
             Err(error) => error!("Fail to shutdown db. {:?}", error),
         }
