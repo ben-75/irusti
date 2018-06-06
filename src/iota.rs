@@ -7,6 +7,7 @@ use txhash::TxHash;
 use zmq_wrapper::MessageQ;
 use tips_view_model::TipsViewModel;
 use std::str::FromStr;
+use std::{thread, time};
 
 pub struct Iota {
     configuration: Configuration,
@@ -54,6 +55,7 @@ impl Iota {
             Configuration::booling_param(&configuration, DefaultConfSettings::ZmqEnabled)
         );
         message_q.publish("hello queue".to_string());
+        thread::sleep(time::Duration::from_millis(100));
 
         //Core business
         let mut tips_view_model = TipsViewModel::new();

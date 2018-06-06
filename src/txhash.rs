@@ -2,8 +2,7 @@ use std::str::FromStr;
 use curl::SpongeMode;
 use curl::Curl;
 use curl::Sponge;
-
-
+use std::hash::{Hash, Hasher, self};
 
 const RADIX :u8 = 3;
 const MAX_TRIT_VALUE :u8 = (RADIX - 1) / 2;
@@ -333,6 +332,29 @@ impl FromStr for TxHash {
 
 }
 
+impl Hash for TxHash {
+    fn hash<S: hash::Hasher>(&self, state: &mut S) {
+        for i in 0..50 {
+            state.write_u8(u8_from_bool(self.arr[i], self.arr[i + 1], self.arr[i + 2], self.arr[i + 3], self.arr[i + 4], self.arr[i + 5], self.arr[i + 6], self.arr[i + 7]));
+        }
+        state.write_u8(u8_from_bool(self.arr[400], self.arr[401], self.arr[402], self.arr[403], self.arr[404], false, false, false));
+    }
+
+}
+
+fn u8_from_bool(b0 :bool,b1 :bool,b2 :bool,b3 :bool,b4 :bool,b5 :bool,b6 :bool,b7 :bool) ->u8{
+    let mut h :u8 = 0;
+    if b0 {h+=1};
+    if b1 {h+=2};
+    if b2 {h+=4};
+    if b3 {h+=8};
+    if b4 {h+=16};
+    if b5 {h+=32};
+    if b6 {h+=64};
+    if b7 {h+=128};
+
+    h
+}
 
 #[cfg(test)]
 mod tests {

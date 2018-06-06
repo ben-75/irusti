@@ -26,8 +26,6 @@ impl MessageQ {
                         ask for {} IO-Threads. Sorry, but only one thread will be started. \
                         See: https://github.com/erickt/rust-zmq/issues/206",threads);
                     }
-                    //TODO : some more code required here
-
                     // Spawn worker thread, giving it `send` and whatever else it needs
                     let join_handle = thread::spawn(move||  {
                         let mut running = true;
@@ -36,7 +34,13 @@ impl MessageQ {
                                 Ok(message) => {
                                     match message.len() {
                                         0 => {running = false;drop(());},
-                                        _ => {info!("publish:{}",message);publisher.send_str(message.as_ref(),0);()},
+                                        _ => {
+                                            info!("publish:{}",message);
+                                            match publisher.send_str(message.as_ref(),0) {
+                                                Ok(_) => (),
+                                                Err(error) => warn!("Error on publish {}",error),
+                                            };()
+                                        },
                                     };
 
                                 },
@@ -71,7 +75,7 @@ impl MessageQ {
     pub fn publish(&self, message :String){
         if message.len()>0 {
             match &self.tx {
-                Some(tx) => {
+                &Some(ref tx) => {
                     tx.send(message);
                 },
                 _ => (),
