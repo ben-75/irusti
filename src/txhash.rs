@@ -228,6 +228,19 @@ impl TxHash {
     }
 }
 
+impl PartialEq for TxHash {
+    fn eq(&self, other: &TxHash) -> bool {
+        for i in 0..405 {
+            if self.arr[i]!=other.arr[i] {
+                return false;
+            }
+        }
+        true
+    }
+}
+
+impl Eq for TxHash {}
+
 impl ToString for TxHash{
 
     fn to_string(&self) -> String {

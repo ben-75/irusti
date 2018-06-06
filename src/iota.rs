@@ -5,6 +5,7 @@ use configuration::DefaultConfSettings;
 use tangle::Tangle;
 use txhash::TxHash;
 use zmq_wrapper::MessageQ;
+use tips_view_model::TipsViewModel;
 use std::str::FromStr;
 
 pub struct Iota {
@@ -52,8 +53,11 @@ impl Iota {
             Configuration::integer_param(&configuration, DefaultConfSettings::ZmqPort),
             Configuration::booling_param(&configuration, DefaultConfSettings::ZmqEnabled)
         );
-
         message_q.publish("hello queue".to_string());
+
+        //Core business
+        let mut tips_view_model = TipsViewModel::new();
+
 
         Iota{configuration, tangle, message_q}
     }
