@@ -27,7 +27,9 @@ impl TipsViewModel {
     }
 
     pub fn add_tip_hash(&mut self, tx_hash :TxHash) {
-        self.tips.insert(tx_hash);
+        if !self.solid_tips.contains(&tx_hash) {
+            self.tips.insert(tx_hash);
+        }
     }
 
     pub fn remove_tip_hash(&mut self, tx_hash :TxHash) {
@@ -62,6 +64,10 @@ mod tests {
         assert_eq!(tvm.size(),1);
         assert_eq!(tvm.solid_size(),0);
         tvm.set_solid(h1);
+        assert_eq!(tvm.size(),1);
+        assert_eq!(tvm.solid_size(),1);
+        let h2 = TxHash::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9");
+        tvm.add_tip_hash(h2);
         assert_eq!(tvm.size(),1);
         assert_eq!(tvm.solid_size(),1);
     }
