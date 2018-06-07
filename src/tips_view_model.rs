@@ -38,11 +38,31 @@ impl TipsViewModel {
 
     pub fn set_solid(&mut self, tx_hash :TxHash) {
         if self.tips.remove(&tx_hash){
-            self.tips.insert(tx_hash);
+            self.solid_tips.insert(tx_hash);
         }
     }
 
     pub fn get_tips(&self) -> HashSet<&TxHash> {
         HashSet::from_iter(self.tips.iter().chain(self.solid_tips.iter()))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::{SystemTime};
+
+    #[test]
+    fn size_test() {
+        let mut tvm = TipsViewModel::new();
+        assert_eq!(tvm.size(),0);
+        assert_eq!(tvm.solid_size(),0);
+        let h1 = TxHash::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9");
+        tvm.add_tip_hash(h1);
+        assert_eq!(tvm.size(),1);
+        assert_eq!(tvm.solid_size(),0);
+        tvm.set_solid(h1);
+        assert_eq!(tvm.size(),1);
+        assert_eq!(tvm.solid_size(),1);
     }
 }

@@ -10,13 +10,16 @@ const NUMBER_OF_TRITS_IN_A_BYTE :u8 = 5;
 const NUMBER_OF_TRITS_IN_A_TRYTE :u8 = 3;
 const SIZE_IN_TRITS :usize = 243;
 
+#[derive(Copy,Clone)]
 pub struct TxHash{
     arr :[bool;405],
 }
 
 impl TxHash {
 
-
+    pub fn new(trytes :&str) -> TxHash {
+        TxHash::from_str(trytes).unwrap()
+    }
 
     pub fn trailing_zeros(&self) -> i32 {
         let mut zeros = 0;
