@@ -2,7 +2,7 @@ extern crate zmq;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Sender;
 use std::sync::mpsc::Receiver;
-use std::thread;
+use std::{thread, time};
 use std::thread::JoinHandle;
 
 pub struct MessageQ {
@@ -29,11 +29,11 @@ impl MessageQ {
                     // Spawn worker thread, giving it `send` and whatever else it needs
                     let join_handle = thread::spawn(move||  {
                         let mut running = true;
-                        while(running) {
+                        while running {
                             match rx.recv() {
                                 Ok(message) => {
                                     match message.len() {
-                                        0 => {running = false;drop(());},
+                                        0 => {running = false;},
                                         _ => {
                                             info!("publish:{}",message);
                                             match publisher.send_str(message.as_ref(),0) {
@@ -47,6 +47,8 @@ impl MessageQ {
                                 _ => warn!("Fail to receive message"),
                             }
                         }
+                        let sleep_time = time::Duration::from_millis(1000);
+                        thread::sleep(sleep_time);
                     });
 
 
@@ -76,21 +78,34 @@ impl MessageQ {
         if message.len()>0 {
             match &self.tx {
                 &Some(ref tx) => {
-                    tx.send(message);
+                    match tx.send(message){
+                        Ok(_) => (),
+                        Err(error) => warn!("Fail to publish to ZMQ. (message:{})",error),
+                    }
                 },
-                _ => (),
+                _ => (), //ZMQ is disabled
             }
         }
     }
 
-    pub fn shutdown(&self){
+    pub fn shutdown(self){
         match self.tx {
             Some(ref tx) => {
-                tx.send("".to_string());
+                match tx.send("".to_string()){
+                    Ok(_) => {
+                        info!("Shutting down ZMQ server");
+                        match self.join_handle.unwrap().join() {
+                            Ok(_) => info!("ZMQ server shutdown complete"),
+                            Err(error) => error!("ZMQ server didn't shutdown properly (message : {:?})",error),
+                        }
+                    },
+                    Err(error) => warn!("Fail to send shutdown command to ZMQ. (message:{})",error),
+                }
 
             },
-            _ => (),
+            _ => (), //ZMQ is disabled
         };
+
     }
 
 

@@ -8,6 +8,7 @@ use zmq_wrapper::MessageQ;
 use tips_view_model::TipsViewModel;
 use std::str::FromStr;
 use std::{thread, time};
+use APP_NAME;
 
 pub struct Iota {
     configuration: Configuration,
@@ -64,8 +65,11 @@ impl Iota {
         Iota{configuration, tangle, message_q}
     }
 
-    pub fn shutdown(&self){
+    pub fn shutdown(self){
+        info!("==========================");
+        info!("Shutting down {} ...",APP_NAME);
         self.message_q.shutdown();
         self.tangle.shutdown();
+        info!("Shutdown completed");
     }
 }

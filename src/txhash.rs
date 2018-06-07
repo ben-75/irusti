@@ -2,7 +2,7 @@ use std::str::FromStr;
 use curl::SpongeMode;
 use curl::Curl;
 use curl::Sponge;
-use std::hash::{Hash, Hasher, self};
+use std::hash::{Hash, self};
 
 const RADIX :u8 = 3;
 const MAX_TRIT_VALUE :u8 = (RADIX - 1) / 2;

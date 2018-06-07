@@ -6,7 +6,6 @@ extern crate log4rs;
 use clap::{App, Arg};
 use configuration::Configuration;
 use iota::Iota;
-use tangle::Tangle;
 
 pub mod configuration;
 pub mod iota;
