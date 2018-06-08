@@ -2,10 +2,16 @@ extern crate clap;
 #[macro_use]
 extern crate log;
 extern crate log4rs;
+extern crate linked_hash_set;
+extern crate rand;
 
 use clap::{App, Arg};
 use configuration::Configuration;
 use iota::Iota;
+use tangle::Tangle;
+use transaction_requester::TransactionRequester;
+use configuration::DefaultConfSettings;
+use tips_view_model::TipsViewModel;
 
 pub mod configuration;
 pub mod iota;
@@ -14,6 +20,7 @@ pub mod txhash;
 pub mod curl;
 pub mod zmq_wrapper;
 pub mod tips_view_model;
+pub mod transaction_requester;
 
 const APP_NAME : &'static str = "IRustI";
 const VERSION : &'static str = "1.4.2.4";
@@ -218,7 +225,29 @@ fn main() {
         }
     }
 
+    let tangle = createTangle(configuration.get_param(DefaultConfSettings::DbPath).unwrap(),
+                              configuration.get_flag(DefaultConfSettings::TESTNET));
     let iota = Iota::new(configuration);
+    let mut tips_view_model = TipsViewModel::new();
+    let transaction_requester = TransactionRequester::new(tips_view_model);
 
     iota.shutdown();
+    tangle.shutdown();
+}
+
+fn createTangle(db_path :String, is_testnet :bool) -> Tangle {
+    //Database init
+    let mut effective_db_path = db_path;
+    if is_testnet {
+        if effective_db_path.eq(&"mainnetdb".to_string()) {
+            warn!("Enforce use of testnetdb on test net");
+            effective_db_path = "testnetdb".to_string();
+        }
+    }else{
+        if effective_db_path.eq(&"testnetdb".to_string()) {
+            warn!("Enforce use of mainnetdb on main net");
+            effective_db_path = "mainnetdb".to_string();
+        }
+    }
+    Tangle::new(effective_db_path)
 }

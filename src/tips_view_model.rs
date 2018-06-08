@@ -1,9 +1,10 @@
-extern crate linked_hash_set;
+extern crate rand;
 
 use std::collections::HashSet;
 use txhash::TxHash;
 use std::iter::FromIterator;
-use self::linked_hash_set::LinkedHashSet;
+use linked_hash_set::LinkedHashSet;
+use rand::prelude::*;
 
 pub struct TipsViewModel {
     tips :LinkedHashSet<TxHash>,
@@ -46,6 +47,23 @@ impl TipsViewModel {
 
     pub fn get_tips(&self) -> HashSet<&TxHash> {
         HashSet::from_iter(self.tips.iter().chain(self.solid_tips.iter()))
+    }
+
+    pub fn get_random_solid_tip_hash(&self) -> Option<&TxHash> {
+        if &self.solid_tips.len()==&0 {
+            return None;
+        }
+        let mut rng = rand::thread_rng();
+        let idx = rng.gen_range(0, self.solid_tips.len());
+        self.solid_tips.iter().nth(idx)
+    }
+    pub fn get_random_non_solid_tip_hash(&self) -> Option<&TxHash> {
+        if &self.tips.len()==&0 {
+            return None;
+        }
+        let mut rng = rand::thread_rng();
+        let idx = rng.gen_range(0, self.tips.len());
+        self.tips.iter().nth(idx)
     }
 }
 
