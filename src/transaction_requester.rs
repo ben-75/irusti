@@ -48,7 +48,7 @@ impl TransactionRequester {
         return normal || milestone;
     }
 
-    pub fn request_transaction(&mut self, hash :TxHash, milestone :bool) {
+    pub fn request_transaction(&mut self, hash :TxHash, milestone :bool) -> &mut TransactionRequester{
         if !hash.eq(&self.null_hash) && !self.tangle.exists(&hash) {
             if milestone  {
                 self.milestone_transactions_to_request.remove(&hash);
@@ -59,71 +59,48 @@ impl TransactionRequester {
                 }
             }
         }
+        self
     }
 
-    pub fn transaction_to_request(mut self, milestone :bool) -> Option<TxHash> {
+    pub fn transaction_to_request(&mut self, milestone :bool) -> Option<TxHash> {
         let mut response :Option<TxHash> = None;
-        if milestone && self.milestone_transactions_to_request.len()>0 {
-            let mut first_unknown = 0;
-            {
-                let mut iter = self.milestone_transactions_to_request.iter().enumerate();
-                let mut found: bool = false;
-                while !found {
-                    let next = iter.next();
-                    match next {
-                        None => break,
-                        Some((idx, item)) => {
-                            if self.tangle.exists(item) {
-                                self.message_q.publish(format!("rtl {}", item.to_string()));
-                            } else {
-                                first_unknown = idx;
-                                found = true;
-                                response = Some(*item);
-                            }
+        let mut requestSet = &mut self.transactions_to_request;
+        let mut scan_milestones = false;
+        if (milestone && &self.milestone_transactions_to_request.len()>&0) || requestSet.len()==0 {
+            requestSet = &mut self.milestone_transactions_to_request;
+            scan_milestones = true;
+        }
+        if requestSet.len()==0 {
+            return None;
+        }
+
+        let mut first_unknown = 0;
+        {
+            let mut iter = requestSet.iter().enumerate();
+            let mut found: bool = false;
+            while !found {
+                let next = iter.next();
+                match next {
+                    None => break,
+                    Some((idx, item)) => {
+                        if self.tangle.exists(item) {
+                            self.message_q.publish(format!("rtl {}", item.to_string()));
+                        } else {
+                            first_unknown = idx;
+                            found = true;
+                            response = Some(*item);
                         }
                     }
-                }
-            }
-            while first_unknown > 0 {
-                self.milestone_transactions_to_request.pop_front();
-                first_unknown = first_unknown-1;
-            }
-            if self.p_remove_transaction > 0_f32 {
-                if rand::random::<f32>() < self.p_remove_transaction {
-                    self.milestone_transactions_to_request.pop_front();
                 }
             }
         }
-
-        if (!milestone || response.is_none()) && self.transactions_to_request.len() > 0 {
-            let mut first_unknown = 0;
-            {
-               let mut iter = self.transactions_to_request.iter().enumerate();
-               let mut found: bool = false;
-                while !found {
-                    let next = iter.next();
-                    match next {
-                        None => break,
-                        Some((idx, item)) => {
-                            if self.tangle.exists(item) {
-                                self.message_q.publish(format!("rtl {}", item.to_string()));
-                            } else {
-                                first_unknown = idx;
-                                found = true;
-                                response = Some(*item);
-                            }
-                        }
-                    }
-                }
-            }
-            while first_unknown > 0 {
-                self.transactions_to_request.pop_front();
-                first_unknown = first_unknown-1;
-            }
-            if self.p_remove_transaction>0_f32 {
-                if rand::random::<f32>() < self.p_remove_transaction {
-                    self.transactions_to_request.pop_front();
-                }
+        while first_unknown > 0 {
+            requestSet.pop_front();
+            first_unknown = first_unknown-1;
+        }
+        if self.p_remove_transaction > 0_f32 {
+            if rand::random::<f32>() < self.p_remove_transaction {
+                requestSet.pop_front();
             }
         }
         response
@@ -172,5 +149,26 @@ mod tests {
         assert_eq!(transaction_requester.transaction_to_request(false).unwrap(),h1);
     }
 
+    #[test]
+    fn request_milestone_transaction_test() {
+        let mut transaction_requester = setup("unittest3");
+        let h1 = TxHash::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9");
+        transaction_requester.request_transaction(h1,true);
+        assert_eq!(transaction_requester.size(),1);
+        assert_eq!(transaction_requester.transaction_to_request(false).unwrap(),h1);
+        assert_eq!(transaction_requester.size(),1);
+    }
+
+    #[test]
+    fn request_milestone_transaction2_test() {
+        let mut transaction_requester = setup("unittest4");
+        let h1 = TxHash::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9");
+        let h2 = TxHash::new("AAADEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9");
+        transaction_requester.request_transaction(h1,false)
+                             .request_transaction(h2,true);
+        assert_eq!(transaction_requester.size(),2);
+        assert_eq!(transaction_requester.transaction_to_request(true).unwrap(),h2);
+        assert_eq!(transaction_requester.size(),2);
+    }
 
 }
