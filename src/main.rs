@@ -12,6 +12,8 @@ use tangle::Tangle;
 use transaction_requester::TransactionRequester;
 use configuration::DefaultConfSettings;
 use tips_view_model::TipsViewModel;
+use std::rc::Rc;
+use zmq_wrapper::MessageQ;
 
 pub mod configuration;
 pub mod iota;
@@ -225,29 +227,23 @@ fn main() {
         }
     }
 
-    let tangle = createTangle(configuration.get_param(DefaultConfSettings::DbPath).unwrap(),
+    let tangle = Tangle::safe_new(configuration.get_param(DefaultConfSettings::DbPath).unwrap(),
                               configuration.get_flag(DefaultConfSettings::TESTNET));
-    let iota = Iota::new(configuration);
+    let tangle_read_only = Rc::new(tangle);
     let mut tips_view_model = TipsViewModel::new();
-    let transaction_requester = TransactionRequester::new(tips_view_model);
+
+    let message_q = MessageQ::new(
+        Configuration::integer_param(&configuration, DefaultConfSettings::ZmqThreads),
+        Configuration::stringify_param(&configuration, DefaultConfSettings::ZmqIpc),
+        Configuration::integer_param(&configuration, DefaultConfSettings::ZmqPort),
+        Configuration::booling_param(&configuration, DefaultConfSettings::ZmqEnabled)
+    );
+    let message_q_ref = Rc::new(message_q);
+    let transaction_requester = TransactionRequester::new(10000 ,
+    configuration.floating_param(DefaultConfSettings::PRemoveRequest),
+                                                          tangle_read_only.clone(), message_q_ref.clone());
+    let iota = Iota::new(configuration);
 
     iota.shutdown();
-    tangle.shutdown();
-}
-
-fn createTangle(db_path :String, is_testnet :bool) -> Tangle {
-    //Database init
-    let mut effective_db_path = db_path;
-    if is_testnet {
-        if effective_db_path.eq(&"mainnetdb".to_string()) {
-            warn!("Enforce use of testnetdb on test net");
-            effective_db_path = "testnetdb".to_string();
-        }
-    }else{
-        if effective_db_path.eq(&"testnetdb".to_string()) {
-            warn!("Enforce use of mainnetdb on main net");
-            effective_db_path = "mainnetdb".to_string();
-        }
-    }
-    Tangle::new(effective_db_path)
+    tangle_read_only.shutdown();
 }

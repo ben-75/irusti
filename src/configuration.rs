@@ -272,6 +272,10 @@ impl Configuration {
         return self.booling(d.to_string().as_ref());
     }
 
+    pub fn floating_param(&self, d : DefaultConfSettings) -> f32 {
+        return self.floating(d.to_string().as_ref());
+    }
+
     const NOT_DEFINED:&'static str = "<UNDEFINED>";
     pub fn print(&self){
         println!();
