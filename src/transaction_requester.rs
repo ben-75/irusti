@@ -116,10 +116,19 @@ mod tests {
     fn setup(db_path :&str) -> TransactionRequester{
         let test_max_size = 100;
         let p_remove_transaction_test = 0_f32;
+        setup_internal(db_path, test_max_size, p_remove_transaction_test)
+    }
+
+    fn setup_always_remove(db_path :&str) -> TransactionRequester{
+        let test_max_size = 100;
+        let p_remove_transaction_test = 1_f32;
+        setup_internal(db_path, test_max_size, p_remove_transaction_test)
+    }
+
+    fn setup_internal(db_path: &str, test_max_size: usize, p_remove_transaction_test: f32) -> TransactionRequester {
         let tangle = Tangle::safe_new(db_path.to_string(),
                                       true);
         let tangle_read_only = Rc::new(tangle);
-
         let message_q = MessageQ::new(
             1,
             None,
@@ -129,12 +138,20 @@ mod tests {
         let transactions_to_request = LinkedHashSet::with_capacity(test_max_size);
         let milestone_transactions_to_request = LinkedHashSet::with_capacity(500);
         let null_hash = TxHash::new("999999999999999999999999999999999999999999999999999999999999999999999999999999999");
-        TransactionRequester{transactions_to_request,milestone_transactions_to_request,max_size: test_max_size,
-            p_remove_transaction: p_remove_transaction_test, tangle: tangle_read_only, message_q : message_q_ref.clone() , null_hash}
+        TransactionRequester {
+            transactions_to_request,
+            milestone_transactions_to_request,
+            max_size: test_max_size,
+            p_remove_transaction: p_remove_transaction_test,
+            tangle: tangle_read_only,
+            message_q: message_q_ref.clone(),
+            null_hash
+        }
     }
+
     #[test]
     fn size_test() {
-        let mut transaction_requester = setup("unittest1");
+        let mut transaction_requester = setup("dbtests/unittest1");
         assert_eq!(transaction_requester.size(),0);
         assert_eq!(transaction_requester.transaction_to_request_is_full(),false);
         assert_eq!(transaction_requester.get_transactions_to_request().len(),0);
@@ -142,7 +159,7 @@ mod tests {
 
     #[test]
     fn request_transaction_test() {
-        let mut transaction_requester = setup("unittest2");
+        let mut transaction_requester = setup("dbtests/unittest2");
         let h1 = TxHash::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9");
         transaction_requester.request_transaction(h1,false);
         assert_eq!(transaction_requester.size(),1);
@@ -151,7 +168,7 @@ mod tests {
 
     #[test]
     fn request_milestone_transaction_test() {
-        let mut transaction_requester = setup("unittest3");
+        let mut transaction_requester = setup("dbtests/unittest3");
         let h1 = TxHash::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9");
         transaction_requester.request_transaction(h1,true);
         assert_eq!(transaction_requester.size(),1);
@@ -161,7 +178,7 @@ mod tests {
 
     #[test]
     fn request_milestone_transaction2_test() {
-        let mut transaction_requester = setup("unittest4");
+        let mut transaction_requester = setup("dbtests/unittest4");
         let h1 = TxHash::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9");
         let h2 = TxHash::new("AAADEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9");
         transaction_requester.request_transaction(h1,false)
@@ -169,6 +186,18 @@ mod tests {
         assert_eq!(transaction_requester.size(),2);
         assert_eq!(transaction_requester.transaction_to_request(true).unwrap(),h2);
         assert_eq!(transaction_requester.size(),2);
+    }
+
+    #[test]
+    fn request_milestone_transaction2_remove_test() {
+        let mut transaction_requester = setup_always_remove("dbtests/unittest5");
+        let h1 = TxHash::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9");
+        let h2 = TxHash::new("AAADEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9");
+        transaction_requester.request_transaction(h1,false)
+            .request_transaction(h2,true);
+        assert_eq!(transaction_requester.size(),2);
+        assert_eq!(transaction_requester.transaction_to_request(true).unwrap(),h2);
+        assert_eq!(transaction_requester.size(),1);
     }
 
 }

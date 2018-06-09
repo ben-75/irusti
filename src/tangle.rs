@@ -92,4 +92,5 @@ impl Tangle {
             Err(error) => error!("Fail to shutdown db. {:?}", error),
         }
     }
+
 }
