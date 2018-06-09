@@ -73,10 +73,11 @@ impl TransactionRequester {
                     match next {
                         None => break,
                         Some((idx, item)) => {
-                            if !self.tangle.exists(item) {
+                            if self.tangle.exists(item) {
                                 self.message_q.publish(format!("rtl {}", item.to_string()));
                             } else {
                                 first_unknown = idx;
+                                found = true;
                                 response = Some(*item);
                             }
                         }
@@ -104,10 +105,11 @@ impl TransactionRequester {
                     match next {
                         None => break,
                         Some((idx, item)) => {
-                            if !self.tangle.exists(item) {
+                            if self.tangle.exists(item) {
                                 self.message_q.publish(format!("rtl {}", item.to_string()));
                             } else {
                                 first_unknown = idx;
+                                found = true;
                                 response = Some(*item);
                             }
                         }
