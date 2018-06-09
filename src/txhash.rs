@@ -3,6 +3,7 @@ use curl::SpongeMode;
 use curl::Curl;
 use curl::Sponge;
 use std::hash::{Hash, self};
+use std::fmt;
 
 const RADIX :u8 = 3;
 const MAX_TRIT_VALUE :u8 = (RADIX - 1) / 2;
@@ -227,6 +228,12 @@ impl TxHash {
             }
         }
         Ok(TxHash{arr})
+    }
+}
+
+impl fmt::Debug for TxHash {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Trytes: {}", self.to_string())
     }
 }
 

@@ -16,6 +16,7 @@ pub struct TransactionRequester{
     max_size :usize,
     p_remove_transaction :f32,
     tangle :Rc<Tangle>,
+    message_q :Rc<MessageQ>,
     null_hash :TxHash,
 }
 
@@ -26,7 +27,7 @@ impl TransactionRequester {
         let milestone_transactions_to_request = LinkedHashSet::with_capacity(500);
         let null_hash = TxHash::new("999999999999999999999999999999999999999999999999999999999999999999999999999999999");
         TransactionRequester{transactions_to_request,milestone_transactions_to_request,max_size,
-            p_remove_transaction, tangle, null_hash}
+            p_remove_transaction, tangle, message_q, null_hash}
     }
 
     pub fn size(&self) -> usize {
@@ -60,7 +61,7 @@ impl TransactionRequester {
         }
     }
 
-    pub fn transaction_to_request(mut self, milestone :bool, messageQ :MessageQ) -> Option<TxHash> {
+    pub fn transaction_to_request(mut self, milestone :bool) -> Option<TxHash> {
         let mut response :Option<TxHash> = None;
         if milestone && self.milestone_transactions_to_request.len()>0 {
             let mut first_unknown = 0;
@@ -73,7 +74,7 @@ impl TransactionRequester {
                         None => break,
                         Some((idx, item)) => {
                             if !self.tangle.exists(item) {
-                                messageQ.publish(format!("rtl {}", item.to_string()));
+                                self.message_q.publish(format!("rtl {}", item.to_string()));
                             } else {
                                 first_unknown = idx;
                                 response = Some(*item);
@@ -104,7 +105,7 @@ impl TransactionRequester {
                         None => break,
                         Some((idx, item)) => {
                             if !self.tangle.exists(item) {
-                                messageQ.publish(format!("rtl {}", item.to_string()));
+                                self.message_q.publish(format!("rtl {}", item.to_string()));
                             } else {
                                 first_unknown = idx;
                                 response = Some(*item);
@@ -133,33 +134,36 @@ impl TransactionRequester {
 mod tests {
     use super::*;
 
-    fn setup() -> TransactionRequester{
-        let tangle = Tangle::safe_new(configuration.get_param(DefaultConfSettings::DbPath).unwrap(),
-                                      configuration.get_flag(DefaultConfSettings::TESTNET));
+    fn setup(db_path :&str) -> TransactionRequester{
+        let test_max_size = 100;
+        let p_remove_transaction_test = 0_f32;
+        let tangle = Tangle::safe_new(db_path.to_string(),
+                                      true);
         let tangle_read_only = Rc::new(tangle);
 
         let message_q = MessageQ::new(
-            Configuration::integer_param(&configuration, DefaultConfSettings::ZmqThreads),
-            Configuration::stringify_param(&configuration, DefaultConfSettings::ZmqIpc),
-            Configuration::integer_param(&configuration, DefaultConfSettings::ZmqPort),
-            Configuration::booling_param(&configuration, DefaultConfSettings::ZmqEnabled)
-        );
+            1,
+            None,
+            5566,
+            false);
         let message_q_ref = Rc::new(message_q);
-
+        let transactions_to_request = LinkedHashSet::with_capacity(test_max_size);
+        let milestone_transactions_to_request = LinkedHashSet::with_capacity(500);
+        let null_hash = TxHash::new("999999999999999999999999999999999999999999999999999999999999999999999999999999999");
+        TransactionRequester{transactions_to_request,milestone_transactions_to_request,max_size: test_max_size,
+            p_remove_transaction: p_remove_transaction_test, tangle: tangle_read_only, message_q : message_q_ref.clone() , null_hash}
     }
     #[test]
     fn size_test() {
-        let tangle = Tangle::new("unittest".to_string());
-        let mut transaction_requester = TransactionRequester::new(100,0_f32,Rc::new(tangle));
+        let mut transaction_requester = setup("unittest1");
         assert_eq!(transaction_requester.size(),0);
         assert_eq!(transaction_requester.transaction_to_request_is_full(),false);
         assert_eq!(transaction_requester.get_transactions_to_request().len(),0);
     }
 
     #[test]
-    fn size_test() {
-        let tangle = Tangle::new("unittest".to_string());
-        let mut transaction_requester = TransactionRequester::new(100,0_f32,Rc::new(tangle));
+    fn request_transaction_test() {
+        let mut transaction_requester = setup("unittest2");
         let h1 = TxHash::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9");
         transaction_requester.request_transaction(h1,false);
         assert_eq!(transaction_requester.size(),1);
