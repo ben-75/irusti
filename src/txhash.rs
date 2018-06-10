@@ -361,8 +361,100 @@ fn u8_from_bool(b0 :bool,b1 :bool,b2 :bool,b3 :bool,b4 :bool,b5 :bool,b6 :bool,b
     if b5 {h+=32};
     if b6 {h+=64};
     if b7 {h+=128};
-
     h
+}
+
+fn i8_from_bool(b0 :bool,b1 :bool,b2 :bool,b3 :bool,b4 :bool,b5 :bool,b6 :bool,b7 :bool,b8 :bool,b9 :bool) ->i8{
+    let mut h :i8 = 0;
+    match (b0,b1) {
+        (true,true) => h+=1,
+        (false,false) => h+=-1,
+        _ => (),
+    }
+    match (b2,b3) {
+        (true,true) => h+=3,
+        (false,false) => h+=-3,
+        _ => (),
+    }
+    match (b4,b5) {
+        (true,true) => h+=9,
+        (false,false) => h+=-9,
+        _ => (),
+    }
+    match (b6,b7) {
+        (true,true) => h+=27,
+        (false,false) => h+=-27,
+        _ => (),
+    }
+    match (b8,b9) {
+        (true,true) => h+=81,
+        (false,false) => h+=-81,
+        _ => (),
+    }
+    h
+}
+
+fn bools_from_i8(v :i8) -> (bool,bool,bool,bool,bool,bool,bool,bool,bool,bool) {
+    let mut b0 =true;
+    let mut b1 =false;
+    let mut b2 =true;
+    let mut b3 =false;
+    let mut b4 =true;
+    let mut b5 =false;
+    let mut b6 =true;
+    let mut b7 =false;
+    let mut b8 =true;
+    let mut b9 =false;
+
+    let mut value = v;
+    if value>=81 {
+        b8=true;b9=true;
+        value +=-81;
+    }else {
+        if value <= -81 {
+            b8 = false; b9 = false;
+            value += 81;
+        }
+    }
+    if value>=27 {
+        b6=true;b7=true;
+        value +=-27;
+    }else {
+        if value <= -27 {
+            b6 = false; b7 = false;
+            value += 27;
+        }
+    }
+    if value>=9 {
+        b4=true;b5=true;
+        value +=-9;
+    }else {
+        if value <= -9 {
+            b4 = false; b5 = false;
+            value += 9;
+        }
+    }
+    if value>=3 {
+        b2=true;b3=true;
+        value +=-3;
+    }else {
+        if value <= -3 {
+            b2 = false; b3 = false;
+            value += 3;
+        }
+    }
+    if value>=1 {
+        b0=true;b1=true;
+        value +=-27;
+    }else {
+        if value <= -1 {
+            b0 = false; b1 = false;
+            value += 1;
+        }
+    }
+
+
+    (b0,b1,b2,b3,b4,b5,b6,b7,b8,b9)
 }
 
 #[cfg(test)]
@@ -378,5 +470,23 @@ mod tests {
             .expect("Time went backwards");
         info!("Time:{:?}",since_the_start);
         assert_eq!(h3.unwrap().to_string(),"TIXEPIEYMGURTQ9ABVYVQSWMNGCVQFASMFAEQWUZCLIWLCDIGYVXOEJBBEMZOIHAYSUQMEFOGZBXUMHQW".to_string());
+    }
+
+    #[test]
+    fn trailing_zeros_test() {
+        let h1 = TxHash::new("999999999999999999999999999999999999999999999999999999999999999999999999999999999");
+        assert_eq!(h1.trailing_zeros(),243);
+        let h1 = TxHash::new("99999999999999999999999999999999999999999999999999999999999999999999999999999999A");
+        assert_eq!(h1.trailing_zeros(),2);
+        let h1 = TxHash::new("99999999999999999999999999999999999999999999999999999999999999999999999999999999B");
+        assert_eq!(h1.trailing_zeros(),1);
+        let h1 = TxHash::new("99999999999999999999999999999999999999999999999999999999999999999999999999999999C");
+        assert_eq!(h1.trailing_zeros(),1);
+        let h1 = TxHash::new("99999999999999999999999999999999999999999999999999999999999999999999999999999999D");
+        assert_eq!(h1.trailing_zeros(),1);
+        let h1 = TxHash::new("99999999999999999999999999999999999999999999999999999999999999999999999999999999E");
+        assert_eq!(h1.trailing_zeros(),0);
+        let h1 = TxHash::new("9999999999999999999999999999999999999999999999999999999999999999999999999999999Z9");
+        assert_eq!(h1.trailing_zeros(),5);
     }
 }
