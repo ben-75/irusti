@@ -12,7 +12,6 @@ use tangle::Tangle;
 use transaction_requester::TransactionRequester;
 use configuration::DefaultConfSettings;
 use tips_view_model::TipsViewModel;
-use std::rc::Rc;
 use zmq_wrapper::MessageQ;
 
 pub mod configuration;

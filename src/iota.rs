@@ -3,9 +3,7 @@ use configuration;
 use configuration::Configuration;
 use configuration::DefaultConfSettings;
 use txhash::TxHash;
-use zmq_wrapper::MessageQ;
 use std::str::FromStr;
-use std::{thread, time};
 use APP_NAME;
 
 pub struct Iota {

@@ -5,7 +5,6 @@ use linked_hash_set::LinkedHashSet;
 use txhash::TxHash;
 use std::iter::FromIterator;
 use std::collections::HashSet;
-use std::rc::Rc;
 use zmq_wrapper::MessageQ;
 
 pub struct TransactionRequester<'a,'b>{
