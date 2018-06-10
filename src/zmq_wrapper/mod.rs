@@ -74,11 +74,11 @@ impl MessageQ {
         }
     }
 
-    pub fn publish(&self, message :String){
+    pub fn publish(&self, message :&str){
         if message.len()>0 {
             match &self.tx {
                 &Some(ref tx) => {
-                    match tx.send(message){
+                    match tx.send(message.to_string()){
                         Ok(_) => (),
                         Err(error) => warn!("Fail to publish to ZMQ. (message:{})",error),
                     }

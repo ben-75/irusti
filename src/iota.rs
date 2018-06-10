@@ -67,6 +67,5 @@ impl Iota {
         info!("Shutting down {} ...",APP_NAME);
         //self.message_q.shutdown();
         //self.tangle.shutdown();
-        info!("Shutdown completed");
     }
 }

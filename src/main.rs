@@ -236,7 +236,7 @@ fn main() {
         Configuration::integer_param(&configuration, DefaultConfSettings::ZmqPort),
         Configuration::booling_param(&configuration, DefaultConfSettings::ZmqEnabled)
     );
-    message_q.publish("hey there".to_string());
+    message_q.publish("hey there");
     {
         let transaction_requester = TransactionRequester::new(10000,
                                                               configuration.floating_param(DefaultConfSettings::PRemoveRequest),
@@ -247,4 +247,5 @@ fn main() {
     message_q.shutdown();
 
     tangle.shutdown();
+    info!("Shutdown completed");
 }

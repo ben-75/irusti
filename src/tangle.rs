@@ -1,11 +1,21 @@
 extern crate rocksdb;
 extern crate num_cpus;
-use self::rocksdb::{DB, Options};
+use self::rocksdb::{DB, Options, ColumnFamily};
 use txhash::TxHash;
 
 pub struct Tangle {
     db :DB,
     pub db_path :String,
+    cf_default :ColumnFamily,
+    cf_transaction :ColumnFamily,
+    cf_transaction_metadata :ColumnFamily,
+    cf_milestone :ColumnFamily,
+    cf_state_diff :ColumnFamily,
+    cf_address :ColumnFamily,
+    cf_approvee :ColumnFamily,
+    cf_bundle :ColumnFamily,
+    cf_obsolete_tag :ColumnFamily,
+    cf_tag :ColumnFamily,
 }
 
 impl Tangle {
@@ -51,7 +61,7 @@ impl Tangle {
             "bundle",
             "obsoleteTag",
             "tag"];
-        let db :DB = match DB::open(&opts, db_path_2.clone()) {
+        let db :DB = match DB::open_cf(&opts, db_path_2.clone(), &cfs) {
             Ok(database) => {info!("Starting Tangle at {}",db_path_2);database},
             Err(error) => {
                 error!("Cannot open database: {}", error);
@@ -67,18 +77,40 @@ impl Tangle {
 
         db.delete(b"my key").unwrap();
 
-        Tangle{db, db_path}
+        Tangle{
+            cf_default: DB::cf_handle(&db,"default").unwrap(),
+            cf_transaction: DB::cf_handle(&db,"transaction").unwrap(),
+            cf_transaction_metadata: DB::cf_handle(&db,"transaction-metadata").unwrap(),
+            cf_milestone : DB::cf_handle(&db,"milestone").unwrap(),
+            cf_state_diff : DB::cf_handle(&db,"stateDiff").unwrap(),
+            cf_address : DB::cf_handle(&db,"address").unwrap(),
+            cf_approvee : DB::cf_handle(&db,"approvee").unwrap(),
+            cf_bundle : DB::cf_handle(&db,"bundle").unwrap(),
+            cf_obsolete_tag : DB::cf_handle(&db,"obsoleteTag").unwrap(),
+            cf_tag: DB::cf_handle(&db,"tag").unwrap(),
+            db,
+            db_path,
+
+        }
     }
 
-    pub fn exists(&self, hash :&TxHash) -> bool {
-        //TODO
+    pub fn exists(&self, txhash :&TxHash) -> bool {
+//        match self.db.get_cf(self.cf_transaction,txhash.to_i8()) {
+//            Err(_) => {error!("Database read failure");false},
+//            Ok(x) => {
+//                match x.unwrap() {
+//                    None => false,
+//                    Some(_) => true,
+//                }
+//            }
+//        }
         false
     }
 
-    pub fn shutdown(&self){
+    pub fn shutdown(self){
         let opt= Options::default();
         info!("Shutting down database at {}",self.db_path);
-        match DB::destroy(&opt, &self.db_path){
+        match DB::destroy(&opt, self.db_path){
             Ok(_info) => info!("Shutdown database."),
             Err(error) => error!("Fail to shutdown db. {:?}", error),
         }

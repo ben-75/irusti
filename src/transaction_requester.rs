@@ -79,7 +79,7 @@ impl<'a,'b> TransactionRequester<'a,'b> {
                     None => break,
                     Some((idx, item)) => {
                         if self.tangle.exists(item) {
-                            self.message_q.publish(format!("rtl {}", item.to_string()));
+                            self.message_q.publish(&format!("rtl {}", item.to_string()));
                         } else {
                             first_unknown = idx;
                             found = true;
