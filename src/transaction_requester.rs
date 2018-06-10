@@ -142,7 +142,7 @@ mod tests {
         }
     }
 
-    fn makeTangleMQ(db_path :&str) -> (Tangle,MessageQ){
+    fn make_tangle_mq(db_path :&str) -> (Tangle, MessageQ){
         (Tangle::safe_new(db_path.to_string(),
                            true),MessageQ::new(
             1,
@@ -152,7 +152,7 @@ mod tests {
     }
     #[test]
     fn size_test() {
-        let tg_mq = makeTangleMQ("dbtests/unittest1");
+        let tg_mq = make_tangle_mq("dbtests/unittest1");
         let mut transaction_requester = setup((&tg_mq.0, &tg_mq.1));
         assert_eq!(transaction_requester.size(),0);
         assert_eq!(transaction_requester.transaction_to_request_is_full(),false);
@@ -161,7 +161,7 @@ mod tests {
 
     #[test]
     fn request_transaction_test() {
-        let tg_mq = makeTangleMQ("dbtests/unittest2");
+        let tg_mq = make_tangle_mq("dbtests/unittest2");
         let mut transaction_requester = setup((&tg_mq.0, &tg_mq.1));
         let h1 = TxHash::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9");
         transaction_requester.request_transaction(h1,false);
@@ -171,7 +171,7 @@ mod tests {
 
     #[test]
     fn request_milestone_transaction_test() {
-        let tg_mq = makeTangleMQ("dbtests/unittest3");
+        let tg_mq = make_tangle_mq("dbtests/unittest3");
         let mut transaction_requester = setup((&tg_mq.0, &tg_mq.1));
         let h1 = TxHash::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9");
         transaction_requester.request_transaction(h1,true);
@@ -182,7 +182,7 @@ mod tests {
 
     #[test]
     fn request_milestone_transaction2_test() {
-        let tg_mq = makeTangleMQ("dbtests/unittest4");
+        let tg_mq = make_tangle_mq("dbtests/unittest4");
         let mut transaction_requester = setup((&tg_mq.0, &tg_mq.1));
         let h1 = TxHash::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9");
         let h2 = TxHash::new("AAADEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9");
@@ -195,7 +195,7 @@ mod tests {
 
     #[test]
     fn request_milestone_transaction2_remove_test() {
-        let tg_mq = makeTangleMQ("dbtests/unittest5");
+        let tg_mq = make_tangle_mq("dbtests/unittest5");
         let mut transaction_requester = setup_always_remove((&tg_mq.0, &tg_mq.1));
         let h1 = TxHash::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9");
         let h2 = TxHash::new("AAADEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9");
