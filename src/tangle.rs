@@ -41,6 +41,16 @@ impl Tangle {
         //TODO : terminate setup
         let num = num_cpus::get();
         info!("Number of cpus: {}", num);
+
+        let cfs = ["default","transaction",
+            "transaction-metadata",
+            "milestone",
+            "stateDiff",
+            "address",
+            "approvee",
+            "bundle",
+            "obsoleteTag",
+            "tag"];
         let db :DB = match DB::open(&opts, db_path_2.clone()) {
             Ok(database) => {info!("Starting Tangle at {}",db_path_2);database},
             Err(error) => {
@@ -58,25 +68,6 @@ impl Tangle {
         db.delete(b"my key").unwrap();
 
         Tangle{db, db_path}
-    }
-
-    pub fn new_read_only(db_path :String) -> Tangle {
-        let mut opts = Options::default();
-        opts.create_if_missing(false);
-        opts.create_missing_column_families(false);
-        opts.set_max_manifest_file_size(1048576);
-        opts.set_max_open_files(10000);
-        opts.set_max_background_compactions(1);
-        opts.set_allow_concurrent_memtable_write(false);
-        //TODO : make it really read only
-        let db :DB = match DB::open(&opts, db_path.clone()) {
-            Ok(database) => {info!("Open Tangle Read Only at {}",db_path);database},
-            Err(error) => {
-                error!("Cannot open read only database: {}", error);
-                panic!("Aborting. Reason: cannot open read only database");
-            }
-        };
-        Tangle{db,db_path}
     }
 
     pub fn exists(&self, hash :&TxHash) -> bool {

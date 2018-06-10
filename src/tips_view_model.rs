@@ -14,8 +14,8 @@ pub struct TipsViewModel {
 impl TipsViewModel {
 
     pub fn new() -> TipsViewModel {
-        let mut tips = LinkedHashSet::with_capacity(5000);
-        let mut solid_tips = LinkedHashSet::with_capacity(5000);
+        let tips = LinkedHashSet::with_capacity(5000);
+        let solid_tips = LinkedHashSet::with_capacity(5000);
         TipsViewModel{tips,solid_tips}
     }
 

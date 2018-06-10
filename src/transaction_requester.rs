@@ -1,14 +1,12 @@
 extern crate rand;
 
 use tangle::Tangle;
-use tips_view_model::TipsViewModel;
 use linked_hash_set::LinkedHashSet;
 use txhash::TxHash;
 use std::iter::FromIterator;
 use std::collections::HashSet;
 use std::rc::Rc;
 use zmq_wrapper::MessageQ;
-use rand::prelude::*;
 
 pub struct TransactionRequester{
     transactions_to_request :LinkedHashSet<TxHash>,
@@ -64,19 +62,17 @@ impl TransactionRequester {
 
     pub fn transaction_to_request(&mut self, milestone :bool) -> Option<TxHash> {
         let mut response :Option<TxHash> = None;
-        let mut requestSet = &mut self.transactions_to_request;
-        let mut scan_milestones = false;
-        if (milestone && &self.milestone_transactions_to_request.len()>&0) || requestSet.len()==0 {
-            requestSet = &mut self.milestone_transactions_to_request;
-            scan_milestones = true;
+        let mut request_set = &mut self.transactions_to_request;
+        if (milestone && &self.milestone_transactions_to_request.len()>&0) || request_set.len()==0 {
+            request_set = &mut self.milestone_transactions_to_request;
         }
-        if requestSet.len()==0 {
+        if request_set.len()==0 {
             return None;
         }
 
         let mut first_unknown = 0;
         {
-            let mut iter = requestSet.iter().enumerate();
+            let mut iter = request_set.iter().enumerate();
             let mut found: bool = false;
             while !found {
                 let next = iter.next();
@@ -95,17 +91,16 @@ impl TransactionRequester {
             }
         }
         while first_unknown > 0 {
-            requestSet.pop_front();
+            request_set.pop_front();
             first_unknown = first_unknown-1;
         }
         if self.p_remove_transaction > 0_f32 {
             if rand::random::<f32>() < self.p_remove_transaction {
-                requestSet.pop_front();
+                request_set.pop_front();
             }
         }
         response
     }
-    
 
 }
 

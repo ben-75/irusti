@@ -2,10 +2,8 @@
 use configuration;
 use configuration::Configuration;
 use configuration::DefaultConfSettings;
-use tangle::Tangle;
 use txhash::TxHash;
 use zmq_wrapper::MessageQ;
-use transaction_requester::TransactionRequester;
 use std::str::FromStr;
 use std::{thread, time};
 use APP_NAME;
@@ -13,7 +11,7 @@ use APP_NAME;
 pub struct Iota {
     configuration: Configuration,
     //pub tangle : Tangle,
-    pub message_q :MessageQ,
+    //pub message_q :MessageQ,
 }
 
 impl Iota {
@@ -49,27 +47,27 @@ impl Iota {
 //        let tangle = Tangle::new(effective_db_path);
 
         //ZMQ
-        let message_q = MessageQ::new(
-            Configuration::integer_param(&configuration, DefaultConfSettings::ZmqThreads),
-            Configuration::stringify_param(&configuration, DefaultConfSettings::ZmqIpc),
-            Configuration::integer_param(&configuration, DefaultConfSettings::ZmqPort),
-            Configuration::booling_param(&configuration, DefaultConfSettings::ZmqEnabled)
-        );
-        message_q.publish("hello queue".to_string());
-        thread::sleep(time::Duration::from_millis(100));
+//        let message_q = MessageQ::new(
+//            Configuration::integer_param(&configuration, DefaultConfSettings::ZmqThreads),
+//            Configuration::stringify_param(&configuration, DefaultConfSettings::ZmqIpc),
+//            Configuration::integer_param(&configuration, DefaultConfSettings::ZmqPort),
+//            Configuration::booling_param(&configuration, DefaultConfSettings::ZmqEnabled)
+//        );
+//        message_q.publish("hello queue".to_string());
+//        thread::sleep(time::Duration::from_millis(100));
 
         //Core business
         //let mut tips_view_model = TipsViewModel::new();
 
        // let mut transaction_requester = TransactionRequester::new(&tangle, tips_view_model);
 
-        Iota{configuration, message_q}
+        Iota{configuration}
     }
 
     pub fn shutdown(self){
         info!("==========================");
         info!("Shutting down {} ...",APP_NAME);
-        self.message_q.shutdown();
+        //self.message_q.shutdown();
         //self.tangle.shutdown();
         info!("Shutdown completed");
     }
