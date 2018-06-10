@@ -229,7 +229,6 @@ fn main() {
 
     let tangle = Tangle::safe_new(configuration.get_param(DefaultConfSettings::DbPath).unwrap(),
                               configuration.get_flag(DefaultConfSettings::TESTNET));
-    let tangle_ref = Rc::new(tangle);
     let tips_view_model = TipsViewModel::new();
 
     let message_q = MessageQ::new(
@@ -238,13 +237,15 @@ fn main() {
         Configuration::integer_param(&configuration, DefaultConfSettings::ZmqPort),
         Configuration::booling_param(&configuration, DefaultConfSettings::ZmqEnabled)
     );
-    let message_q_ref = Rc::new(message_q);
-    let transaction_requester = TransactionRequester::new(10000,
-                                                          configuration.floating_param(DefaultConfSettings::PRemoveRequest),
-                                                          tangle_ref.clone(), message_q_ref.clone());
-    let iota = Iota::new(configuration);
-    //message_q.shutdown();
-    iota.shutdown();
+    message_q.publish("hey there".to_string());
+    {
+        let transaction_requester = TransactionRequester::new(10000,
+                                                              configuration.floating_param(DefaultConfSettings::PRemoveRequest),
+                                                              &tangle, &message_q);
+        let iota = Iota::new(configuration);
+        iota.shutdown();
+    }
+    message_q.shutdown();
 
-    tangle_ref.shutdown();
+    tangle.shutdown();
 }
