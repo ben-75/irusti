@@ -5,15 +5,14 @@ use curl::Sponge;
 use std::hash::{Hash, self};
 use std::fmt;
 
-const RADIX :u8 = 3;
-const MAX_TRIT_VALUE :u8 = (RADIX - 1) / 2;
-const NUMBER_OF_TRITS_IN_A_BYTE :u8 = 5;
-const NUMBER_OF_TRITS_IN_A_TRYTE :u8 = 3;
+const NUMBER_OF_TRITS_IN_A_TRYTE :usize = 3;
 const SIZE_IN_TRITS :usize = 243;
+const SIZE_IN_BITS :usize = 405;
+const SIZE_IN_TRYTES :usize = SIZE_IN_TRITS/NUMBER_OF_TRITS_IN_A_TRYTE;
 
 #[derive(Copy,Clone)]
 pub struct TxHash{
-    arr :[bool;405],
+    arr :[bool;SIZE_IN_BITS],
 }
 
 impl TxHash {
@@ -89,34 +88,34 @@ impl TxHash {
     pub fn to_bits(trytes :String, mut bits :Vec<bool>) {
         for c in trytes.chars() {
             match c {
-                        '9' => bits.extend_from_slice(&[false,false,false,false,false,false]),
-                        'A' => bits.extend_from_slice(&[true,true,false,false,false,false]),
-                        'B' => bits.extend_from_slice(&[true,false,true,true,false,false]),
-                        'C' => bits.extend_from_slice(&[false,false,true,true,false,false]),
-                        'D' => bits.extend_from_slice(&[true,true,true,true,false,false]),
-                        'E' => bits.extend_from_slice(&[true,false,true,false,true,true]),
-                    	'F' => bits.extend_from_slice(&[false,false,true,false,true,true]),
-                        'G' => bits.extend_from_slice(&[true,true,true,false,true,true]),
-                        'H' => bits.extend_from_slice(&[true,false,false,false,true,true]),
-                        'I' => bits.extend_from_slice(&[false,false,false,false,true,true]),
-                        'J' => bits.extend_from_slice(&[true,true,false,false,true,true]),
-                        'K' => bits.extend_from_slice(&[true,false,true,true,true,true]),
-                        'L' => bits.extend_from_slice(&[false,false,true,true,true,true]),
-                        'M' => bits.extend_from_slice(&[true,true,true,true,true,true]),
-                        'N' => bits.extend_from_slice(&[true,false,true,false,true,false]),
-                        'O' => bits.extend_from_slice(&[false,false,true,false,true,false]),
-                        'P' => bits.extend_from_slice(&[true,true,true,false,true,false]),
-                        'Q' => bits.extend_from_slice(&[true,false,false,false,true,false]),
-                        'R' => bits.extend_from_slice(&[false,false,false,false,true,false]),
-                        'S' => bits.extend_from_slice(&[true,true,false,false,true,false]),
-                        'T' => bits.extend_from_slice(&[true,false,true,true,true,false]),
-                    	'U' => bits.extend_from_slice(&[false,false,true,true,true,false]),
-                        'V' => bits.extend_from_slice(&[true,true,true,true,true,false]),
-                        'W' => bits.extend_from_slice(&[true,false,true,false,false,false]),
-                        'X' => bits.extend_from_slice(&[false,false,true,false,false,false]),
-                        'Y' => bits.extend_from_slice(&[true,true,true,false,false,false]),
-                        'Z' => bits.extend_from_slice(&[true,false,false,false,false,false]),
-                        _ => (),
+                '9' => bits.extend_from_slice(&[false,false,false,false,false,false]),
+                'A' => bits.extend_from_slice(&[true,true,false,false,false,false]),
+                'B' => bits.extend_from_slice(&[true,false,true,true,false,false]),
+                'C' => bits.extend_from_slice(&[false,false,true,true,false,false]),
+                'D' => bits.extend_from_slice(&[true,true,true,true,false,false]),
+                'E' => bits.extend_from_slice(&[true,false,true,false,true,true]),
+                'F' => bits.extend_from_slice(&[false,false,true,false,true,true]),
+                'G' => bits.extend_from_slice(&[true,true,true,false,true,true]),
+                'H' => bits.extend_from_slice(&[true,false,false,false,true,true]),
+                'I' => bits.extend_from_slice(&[false,false,false,false,true,true]),
+                'J' => bits.extend_from_slice(&[true,true,false,false,true,true]),
+                'K' => bits.extend_from_slice(&[true,false,true,true,true,true]),
+                'L' => bits.extend_from_slice(&[false,false,true,true,true,true]),
+                'M' => bits.extend_from_slice(&[true,true,true,true,true,true]),
+                'N' => bits.extend_from_slice(&[true,false,true,false,true,false]),
+                'O' => bits.extend_from_slice(&[false,false,true,false,true,false]),
+                'P' => bits.extend_from_slice(&[true,true,true,false,true,false]),
+                'Q' => bits.extend_from_slice(&[true,false,false,false,true,false]),
+                'R' => bits.extend_from_slice(&[false,false,false,false,true,false]),
+                'S' => bits.extend_from_slice(&[true,true,false,false,true,false]),
+                'T' => bits.extend_from_slice(&[true,false,true,true,true,false]),
+                'U' => bits.extend_from_slice(&[false,false,true,true,true,false]),
+                'V' => bits.extend_from_slice(&[true,true,true,true,true,false]),
+                'W' => bits.extend_from_slice(&[true,false,true,false,false,false]),
+                'X' => bits.extend_from_slice(&[false,false,true,false,false,false]),
+                'Y' => bits.extend_from_slice(&[true,true,true,false,false,false]),
+                'Z' => bits.extend_from_slice(&[true,false,false,false,false,false]),
+                _ => (),
             }
         }
     }
@@ -194,8 +193,8 @@ impl TxHash {
     }
 
     pub fn from_i8(integers :[i8;243]) -> Result<TxHash, ()> {
-        let mut arr :[bool;405] = [false;405];
-        for i in 0..81 {
+        let mut arr :[bool;SIZE_IN_BITS] = [false;SIZE_IN_BITS];
+        for i in 0..SIZE_IN_TRYTES {
             match (integers[i*3],integers[i*3+1],integers[i*3+2]) {
                 (0,0,0) => {arr[i*5]=false;arr[i*5+1]=false;arr[i*5+2]=false;arr[i*5+3]=false;arr[i*5+4]=false}, //3
                 (1,0,0) => {arr[i*5]=true;arr[i*5+1]=false;arr[i*5+2]=false;arr[i*5+3]=false;arr[i*5+4]=false},  //2
@@ -239,7 +238,7 @@ impl fmt::Debug for TxHash {
 
 impl PartialEq for TxHash {
     fn eq(&self, other: &TxHash) -> bool {
-        for i in 0..405 {
+        for i in 0..SIZE_IN_BITS {
             if self.arr[i]!=other.arr[i] {
                 return false;
             }
@@ -253,9 +252,9 @@ impl Eq for TxHash {}
 impl ToString for TxHash{
 
     fn to_string(&self) -> String {
-        let mut s = String::with_capacity(81);
+        let mut s = String::with_capacity(SIZE_IN_TRYTES);
         let mut i :usize = 0;
-        for _ in 0..81 {
+        for _ in 0..SIZE_IN_TRYTES {
             match (self.arr[i], self.arr[i + 1], self.arr[i + 2], self.arr[i + 3], self.arr[i + 4]) {
                 (false, false, false, false, false) => s.push('9'),
                 (true, false, false, false, false) => s.push('A'),
@@ -297,9 +296,9 @@ impl FromStr for TxHash {
 
     fn from_str(s: &str) -> Result<TxHash, ()> {
         match s.len() {
-            81 => {
+            SIZE_IN_TRYTES => {
                 let mut i = 0;
-                let mut arr :[bool;405] = [false;405];
+                let mut arr :[bool;SIZE_IN_BITS] = [false;SIZE_IN_BITS];
                 for c in s.to_string().chars() {
                     match c {
                         '9' => {arr[i]=false;arr[i+1]=false;arr[i+2]=false;arr[i+3]=false;arr[i+4]=false}, //3
