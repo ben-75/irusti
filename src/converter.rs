@@ -126,10 +126,92 @@ pub fn internal_trailing_zeros(bytes :&Vec<i8>, index :usize) ->i32 {
     }
 }
 
+pub fn to_string(bytes :&Vec<i8>, mut tryte_count :i32) -> String {
+    let mut byte_index = 0;
+    let mut response:String = "".to_string();
+    let mut remaining_count = 0;
+    let mut b0 :i8 = 0;
+    let mut b1 :i8 = 0;
+    for byte_index in 0..bytes.len() {
+        if tryte_count == 0 {break;}
+        let [t0,t1,t2,t3,t4] = i8_to_trits(bytes[byte_index]);
+        match(remaining_count) {
+            0 => {
+                response.push(tuple_2_char((t0, t1, t2)));
+                tryte_count -=1;
+                //(b0,b1) =(t3,t4);
+                b0 = t3;
+                b1 = t4;
+                remaining_count = 2;
+            }
+            1 => {
+                response.push(tuple_2_char((b0, t0, t1)));
+                tryte_count -=1;
+                if tryte_count == 0 {break;}
+                response.push(tuple_2_char((t2, t3, t4)));
+                tryte_count -=1;
+                remaining_count = 0;
+            }
+            2 => {
+                response.push(tuple_2_char((b0, b1, t0)));
+                tryte_count -=1;
+                if tryte_count == 0 {break;}
+                response.push(tuple_2_char((t1, t2, t3)));
+                tryte_count -=1;
+                b0 = t4;
+                remaining_count = 1;
+            }
+            _ => panic!("cannot append. remainig count = {}",remaining_count),
+
+        }
+    }
+    response
+}
+
+fn tuple_2_char((t0,t1,t2) :(i8,i8,i8)) -> char {
+    match (t0,t1,t2) {
+        (0,0,0) => '9',
+        (1,0,0) => 'A',
+        (-1,1,0) => 'B',
+        (0,1,0) => 'C',
+        (1,1,0) => 'D',
+        (-1,-1,1) => 'E',
+        (0,-1,1) => 'F',
+        (1,-1,1) => 'G',
+        (-1,0,1) => 'H',
+        (0,0,1) => 'I',
+        (1,0,1) => 'J',
+        (-1,1,1) => 'K',
+        (0,1,1) => 'L',
+        (1,1,1) => 'M',
+        (-1,-1,-1) => 'N',
+        (0,-1,-1) => 'O',
+        (1,-1,-1) => 'P',
+        (-1,0,-1) => 'Q',
+        (0,0,-1) => 'R',
+        (1,0,-1) => 'S',
+        (-1,1,-1) => 'T',
+        (0,1,-1) => 'U',
+        (1,1,-1) => 'V',
+        (-1,-1,0) => 'W',
+        (0,-1,0) => 'X',
+        (1,-1,0) => 'Y',
+        (-1,0,0) => 'Z',
+        _ => panic!("...euh ({},{},{})",t0,t1,t2),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    #[test]
+    fn to_string_test(){
+        assert_eq!(to_string(&to_bytes("A"),1),"A".to_string());
+        assert_eq!(to_string(&to_bytes("9"),1),"9".to_string());
+        assert_eq!(to_string(&to_bytes("ABC"),3),"ABC".to_string());
+        assert_eq!(to_string(&to_bytes("AB"),2),"AB".to_string());
+    }
     #[test]
     fn trailing_zeros_test(){
         assert_eq!(trailing_zeros(&to_bytes("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM")),0);
