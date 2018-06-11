@@ -103,10 +103,42 @@ fn i8_to_trits(value :i8) -> [i8;5]{
     [v,t2,t3,t4,t5]
 }
 
+pub fn trailing_zeros(bytes :&Vec<i8>) ->i32 {
+    let i8_arr = i8_to_trits(bytes[48]);
+    match  (i8_arr[0],i8_arr[1],i8_arr[2],i8_arr[3],i8_arr[4]) {
+        (0,0,0,0,0) => 3+internal_trailing_zeros(bytes,47),
+        (_,0,0,0,0) => 2,
+        (_,_,0,0,0) => 1,
+        _ => 0,
+    }
+}
+
+
+pub fn internal_trailing_zeros(bytes :&Vec<i8>, index :usize) ->i32 {
+    let i8_arr = i8_to_trits(bytes[index]);
+    match  (i8_arr[0],i8_arr[1],i8_arr[2],i8_arr[3],i8_arr[4]) {
+        (0,0,0,0,0) => if index>0 {5+internal_trailing_zeros(bytes,index-1)} else {5},
+        (_,0,0,0,0) => 4,
+        (_,_,0,0,0) => 3,
+        (_,_,_,0,0) => 2,
+        (_,_,_,_,0) => 1,
+        _ => 0,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    #[test]
+    fn trailing_zeros_test(){
+        assert_eq!(trailing_zeros(&to_bytes("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM")),0);
+        assert_eq!(trailing_zeros(&to_bytes("999999999999999999999999999999999999999999999999999999999999999999999999999999999")),243);
+        assert_eq!(trailing_zeros(&to_bytes("99999999999999999999999999999999999999999999999999999999999999999999999999999999A")),2);
+        assert_eq!(trailing_zeros(&to_bytes("99999999999999999999999999999999999999999999999999999999999999999999999999999999B")),1);
+        assert_eq!(trailing_zeros(&to_bytes("9999999999999999999999999999999999999999999999999999999999999999999999999999999Z9")),5);
+        assert_eq!(trailing_zeros(&to_bytes("999999999999999999999999999999999999999999999999999999999999999999999999999999Z99")),8);
+    }
 
     #[test]
     fn i8_to_trits_test() {
@@ -137,4 +169,6 @@ mod tests {
         for _ in 0..49 {v.push(0)}
         assert_eq!(to_bytes("999999999999999999999999999999999999999999999999999999999999999999999999999999999"),v);
     }
+
+
 }
