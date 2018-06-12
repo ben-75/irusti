@@ -201,11 +201,52 @@ fn tuple_2_char((t0,t1,t2) :(i8,i8,i8)) -> char {
     }
 }
 
+
+pub fn to_trits(bytes :&Vec<i8>, mut tryte_count :usize) -> Vec<i8> {
+    let mut byte_index = 0;
+    let mut trits_count = tryte_count*3;
+    let mut response:Vec<i8> = Vec::with_capacity(trits_count);
+    let mut remaining_count = 0;
+    let mut b0 :i8 = 0;
+    let mut b1 :i8 = 0;
+    for byte_index in 0..bytes.len() {
+        if trits_count == 0 {break;}
+        let [t0,t1,t2,t3,t4] = i8_to_trits(bytes[byte_index]);
+        if trits_count>0 {
+            response.push(t0);
+            trits_count -=1;
+        }
+        if trits_count>0 {
+            response.push(t1);
+            trits_count -=1;
+        }
+        if trits_count>0 {
+            response.push(t2);
+            trits_count -=1;
+        }
+        if trits_count>0 {
+            response.push(t3);
+            trits_count -=1;
+        }
+        if trits_count>0 {
+            response.push(t4);
+            trits_count -=1;
+        }
+    }
+    response
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
+
     #[test]
+    fn to_trits_test() {
+        assert_eq!(to_trits(&vec![1],1),vec![1,0,0]);
+    }
+
+        #[test]
     fn to_string_test(){
         assert_eq!(to_string(&to_bytes("A"),1),"A".to_string());
         assert_eq!(to_string(&to_bytes("9"),1),"9".to_string());
