@@ -4,15 +4,19 @@ use curl::Curl;
 use curl::Sponge;
 use std::hash::{Hash, self};
 use std::fmt;
+use converter::i8_to_trits;
+use converter::to_bytes;
+use converter::to_trits;
+use converter::hash_trits_to_bytes;
+use converter::tuple_2_char;
+use converter::trytes_to_trites;
 
-const NUMBER_OF_TRITS_IN_A_TRYTE :usize = 3;
 const SIZE_IN_TRITS :usize = 243;
-const SIZE_IN_BITS :usize = 405;
-const SIZE_IN_TRYTES :usize = SIZE_IN_TRITS/NUMBER_OF_TRITS_IN_A_TRYTE;
+const SIZE_IN_BYTES :usize = 49;
 
 #[derive(Copy,Clone)]
 pub struct TxHash{
-    arr :[bool;SIZE_IN_BITS],
+    arr :[i8;SIZE_IN_BYTES],
 }
 
 impl TxHash {
@@ -22,212 +26,52 @@ impl TxHash {
     }
 
     pub fn trailing_zeros(&self) -> i32 {
-        let mut zeros = 0;
-        for i in (1..82).rev() {
-            let start_index = (i*5)-1;
-            match (self.arr[start_index - 4], self.arr[start_index - 3], self.arr[start_index - 2], self.arr[start_index-1], self.arr[start_index]){
-                (false, false, false, false, false) => zeros += 3,
-                (true, false, false, false, false) => {zeros += 2;break;},
-                (false, true, false, false, false) => {zeros += 1;break;},
-                (true, true, false, false, false) => {zeros += 1;break;},
-                (false, false, true, false, false) => {zeros += 1;break;},
+        let i8_arr = i8_to_trits(self.arr[48]);
+        match  (i8_arr[0],i8_arr[1],i8_arr[2],i8_arr[3],i8_arr[4]) {
+            (0,0,0,0,0) => 3+self.internal_trailing_zeros(47),
+            (_,0,0,0,0) => 2,
+            (_,_,0,0,0) => 1,
+            _ => 0,
+        }
+    }
 
-                (true, true, true, false, true) => {zeros += 1;break;},
-                (false, false, false, true, true) => {zeros += 1;break;},
-                (true, false, false, true, true) => {zeros += 1;break;},
-                (false, true, false, true, true) => {zeros += 2;break;},
-                _ => {break;},
-            }
-        };
-        zeros
+    fn internal_trailing_zeros(&self, index :usize) ->i32 {
+        let i8_arr = i8_to_trits(self.arr[index]);
+        match  (i8_arr[0],i8_arr[1],i8_arr[2],i8_arr[3],i8_arr[4]) {
+            (0,0,0,0,0) => if index>0 {5+self.internal_trailing_zeros(index-1)} else {5},
+            (_,0,0,0,0) => 4,
+            (_,_,0,0,0) => 3,
+            (_,_,_,0,0) => 2,
+            (_,_,_,_,0) => 1,
+            _ => 0,
+        }
     }
 
     pub fn compute(trytes : String, mode :SpongeMode) -> Result<TxHash,()> {
         let sz = 3*trytes.len();
-        let mut integers :Vec<i8> = Vec::with_capacity(sz);
-        integers = TxHash::to_i8(trytes,integers);
+
+//        let mut trit_count = sz;
+//        let mut bytes = match to_bytes(&trytes){
+//            Ok(x) => x,
+//            Err(_) => return Err(()),
+//        };
+//        let mut integers :Vec<i8> = to_trits(&bytes, trytes.len());
+
+        let integers = trytes_to_trites(trytes);
+
         let mut curl = match mode {
             SpongeMode::CurlP27 => {Curl::new_curl_p27()}
             _ => Curl::new_curl_p81(),
         };
         curl.reset();
         curl.absorb(integers,0,sz);
-        TxHash::from_i8(curl.squeeze(0,243))
-    }
-
-    /*
-000		    9  (false,false,false,false,false,false)
-100		    A  (true,true,false,false,false,false)
--110		B  (true,false,true,true,false,false)
-010		    C  (false,false,true,true,false,false)
-110		    D  (true,true,true,true,false,false)
--1-11		E  (true,false,true,false,true,true)
-0-11		F  (false,false,true,false,true,true)
-1-11		G  (true,true,true,false,true,true)
--101		H  (true,false,false,false,true,true)
-001		    I  (false,false,false,false,true,true)
-101		    J  (true,true,false,false,true,true)
--111		K  (true,false,true,true,true,true)
-011		    L  (false,false,true,true,true,true)
-111		    M  (true,true,true,true,true,true)
--1-1-1	    N  (true,false,true,false,true,false)
-0-1-1		O  (false,false,true,false,true,false)
-1-1-1		P  (true,true,true,false,true,false)
--10-1		Q  (true,false,false,false,true,false)
-00-1		R  (false,false,false,false,true,false)
-10-1		S  (true,true,false,false,true,false)
--11-1		T  (true,false,true,true,true,false)
-01-1		U  (false,false,true,true,true,false)
-11-1		V  (true,true,true,true,true,false)
--1-10		W  (true,false,true,false,false,false)
-0-10		X  (false,false,true,false,false,false)
-1-10		Y  (true,true,true,false,false,false)
--100		Z  (true,false,false,false,false,false)
-*/
-
-    pub fn to_bits(trytes :String, mut bits :Vec<bool>) {
-        for c in trytes.chars() {
-            match c {
-                '9' => bits.extend_from_slice(&[false,false,false,false,false,false]),
-                'A' => bits.extend_from_slice(&[true,true,false,false,false,false]),
-                'B' => bits.extend_from_slice(&[true,false,true,true,false,false]),
-                'C' => bits.extend_from_slice(&[false,false,true,true,false,false]),
-                'D' => bits.extend_from_slice(&[true,true,true,true,false,false]),
-                'E' => bits.extend_from_slice(&[true,false,true,false,true,true]),
-                'F' => bits.extend_from_slice(&[false,false,true,false,true,true]),
-                'G' => bits.extend_from_slice(&[true,true,true,false,true,true]),
-                'H' => bits.extend_from_slice(&[true,false,false,false,true,true]),
-                'I' => bits.extend_from_slice(&[false,false,false,false,true,true]),
-                'J' => bits.extend_from_slice(&[true,true,false,false,true,true]),
-                'K' => bits.extend_from_slice(&[true,false,true,true,true,true]),
-                'L' => bits.extend_from_slice(&[false,false,true,true,true,true]),
-                'M' => bits.extend_from_slice(&[true,true,true,true,true,true]),
-                'N' => bits.extend_from_slice(&[true,false,true,false,true,false]),
-                'O' => bits.extend_from_slice(&[false,false,true,false,true,false]),
-                'P' => bits.extend_from_slice(&[true,true,true,false,true,false]),
-                'Q' => bits.extend_from_slice(&[true,false,false,false,true,false]),
-                'R' => bits.extend_from_slice(&[false,false,false,false,true,false]),
-                'S' => bits.extend_from_slice(&[true,true,false,false,true,false]),
-                'T' => bits.extend_from_slice(&[true,false,true,true,true,false]),
-                'U' => bits.extend_from_slice(&[false,false,true,true,true,false]),
-                'V' => bits.extend_from_slice(&[true,true,true,true,true,false]),
-                'W' => bits.extend_from_slice(&[true,false,true,false,false,false]),
-                'X' => bits.extend_from_slice(&[false,false,true,false,false,false]),
-                'Y' => bits.extend_from_slice(&[true,true,true,false,false,false]),
-                'Z' => bits.extend_from_slice(&[true,false,false,false,false,false]),
-                _ => (),
-            }
-        }
-    }
-
-    pub fn to_2bits(trytes :String, mut bits :Vec<(bool,bool)>) {
-        for c in trytes.chars() {
-            match c {
-                '9' => bits.extend_from_slice(&[(false,false),(false,false),(false,false)]),
-                'A' => bits.extend_from_slice(&[(true,true),(false,false),(false,false)]),
-                'B' => bits.extend_from_slice(&[(true,false),(true,true),(false,false)]),
-                'C' => bits.extend_from_slice(&[(false,false),(true,true),(false,false)]),
-                'D' => bits.extend_from_slice(&[(true,true),(true,true),(false,false)]),
-                'E' => bits.extend_from_slice(&[(true,false),(true,false),(true,true)]),
-                'F' => bits.extend_from_slice(&[(false,false),(true,false),(true,true)]),
-                'G' => bits.extend_from_slice(&[(true,true),(true,false),(true,true)]),
-                'H' => bits.extend_from_slice(&[(true,false),(false,false),(true,true)]),
-                'I' => bits.extend_from_slice(&[(false,false),(false,false),(true,true)]),
-                'J' => bits.extend_from_slice(&[(true,true),(false,false),(true,true)]),
-                'K' => bits.extend_from_slice(&[(true,false),(true,true),(true,true)]),
-                'L' => bits.extend_from_slice(&[(false,false),(true,true),(true,true)]),
-                'M' => bits.extend_from_slice(&[(true,true),(true,true),(true,true)]),
-                'N' => bits.extend_from_slice(&[(true,false),(true,false),(true,false)]),
-                'O' => bits.extend_from_slice(&[(false,false),(true,false),(true,false)]),
-                'P' => bits.extend_from_slice(&[(true,true),(true,false),(true,false)]),
-                'Q' => bits.extend_from_slice(&[(true,false),(false,false),(true,false)]),
-                'R' => bits.extend_from_slice(&[(false,false),(false,false),(true,false)]),
-                'S' => bits.extend_from_slice(&[(true,true),(false,false),(true,false)]),
-                'T' => bits.extend_from_slice(&[(true,false),(true,true),(true,false)]),
-                'U' => bits.extend_from_slice(&[(false,false),(true,true),(true,false)]),
-                'V' => bits.extend_from_slice(&[(true,true),(true,true),(true,false)]),
-                'W' => bits.extend_from_slice(&[(true,false),(true,false),(false,false)]),
-                'X' => bits.extend_from_slice(&[(false,false),(true,false),(false,false)]),
-                'Y' => bits.extend_from_slice(&[(true,true),(true,false),(false,false)]),
-                'Z' => bits.extend_from_slice(&[(true,false),(false,false),(false,false)]),
-                _ => (),
-            }
-        }
+        Ok(TxHash {
+            arr: hash_trits_to_bytes(curl.squeeze(0,243)),
+        })
     }
 
 
-    pub fn to_i8(trytes :String, mut integers :Vec<i8>) -> Vec<i8> {
-        for c in trytes.chars() {
-            match c {
-                '9' => integers.extend_from_slice(&[0,0,0]),
-                'A' => integers.extend_from_slice(&[1,0,0]),
-                'B' => integers.extend_from_slice(&[-1,1,0]),
-                'C' => integers.extend_from_slice(&[0,1,0]),
-                'D' => integers.extend_from_slice(&[1,1,0]),
-                'E' => integers.extend_from_slice(&[-1,-1,1]),
-                'F' => integers.extend_from_slice(&[0,-1,1]),
-                'G' => integers.extend_from_slice(&[1,-1,1]),
-                'H' => integers.extend_from_slice(&[-1,0,1]),
-                'I' => integers.extend_from_slice(&[0,0,1]),
-                'J' => integers.extend_from_slice(&[1,0,1]),
-                'K' => integers.extend_from_slice(&[-1,1,1]),
-                'L' => integers.extend_from_slice(&[0,1,1]),
-                'M' => integers.extend_from_slice(&[1,1,1]),
-                'N' => integers.extend_from_slice(&[-1,-1,-1]),
-                'O' => integers.extend_from_slice(&[0,-1,-1]),
-                'P' => integers.extend_from_slice(&[1,-1,-1]),
-                'Q' => integers.extend_from_slice(&[-1,0,-1]),
-                'R' => integers.extend_from_slice(&[0,0,-1]),
-                'S' => integers.extend_from_slice(&[1,0,-1]),
-                'T' => integers.extend_from_slice(&[-1,1,-1]),
-                'U' => integers.extend_from_slice(&[0,1,-1]),
-                'V' => integers.extend_from_slice(&[1,1,-1]),
-                'W' => integers.extend_from_slice(&[-1,-1,0]),
-                'X' => integers.extend_from_slice(&[0,-1,0]),
-                'Y' => integers.extend_from_slice(&[1,-1,0]),
-                'Z' => integers.extend_from_slice(&[-1,0,0]),
-                _ => (),
-            }
-        };
-        integers
-    }
 
-    pub fn from_i8(integers :[i8;243]) -> Result<TxHash, ()> {
-        let mut arr :[bool;SIZE_IN_BITS] = [false;SIZE_IN_BITS];
-        for i in 0..SIZE_IN_TRYTES {
-            match (integers[i*3],integers[i*3+1],integers[i*3+2]) {
-                (0,0,0) => {arr[i*5]=false;arr[i*5+1]=false;arr[i*5+2]=false;arr[i*5+3]=false;arr[i*5+4]=false}, //3
-                (1,0,0) => {arr[i*5]=true;arr[i*5+1]=false;arr[i*5+2]=false;arr[i*5+3]=false;arr[i*5+4]=false},  //2
-                (-1,1,0) => {arr[i*5]=false;arr[i*5+1]=true;arr[i*5+2]=false;arr[i*5+3]=false;arr[i*5+4]=false},  //1
-                (0,1,0) => {arr[i*5]=true;arr[i*5+1]=true;arr[i*5+2]=false;arr[i*5+3]=false;arr[i*5+4]=false},   //1
-                (1,1,0) => {arr[i*5]=false;arr[i*5+1]=false;arr[i*5+2]=true;arr[i*5+3]=false;arr[i*5+4]=false},  //1
-                (-1,-1,1) => {arr[i*5]=true;arr[i*5+1]=false;arr[i*5+2]=true;arr[i*5+3]=false;arr[i*5+4]=false},   //0
-                (0,-1,1) => {arr[i*5]=false;arr[i*5+1]=true;arr[i*5+2]=true;arr[i*5+3]=false;arr[i*5+4]=false},   //0
-                (1,-1,1) => {arr[i*5]=true;arr[i*5+1]=true;arr[i*5+2]=true;arr[i*5+3]=false;arr[i*5+4]=false},    //0
-                (-1,0,1) => {arr[i*5]=false;arr[i*5+1]=false;arr[i*5+2]=false;arr[i*5+3]=true;arr[i*5+4]=false},  //0
-                (0,0,1) => {arr[i*5]=true;arr[i*5+1]=false;arr[i*5+2]=false;arr[i*5+3]=true;arr[i*5+4]=false},   //0
-                (1,0,1) => {arr[i*5]=false;arr[i*5+1]=true;arr[i*5+2]=false;arr[i*5+3]=true;arr[i*5+4]=false},   //0
-                (-1,1,1) => {arr[i*5]=true;arr[i*5+1]=true;arr[i*5+2]=false;arr[i*5+3]=true;arr[i*5+4]=false},    //0
-                (0,1,1) => {arr[i*5]=false;arr[i*5+1]=false;arr[i*5+2]=true;arr[i*5+3]=true;arr[i*5+4]=false},   //0
-                (1,1,1) => {arr[i*5]=true;arr[i*5+1]=false;arr[i*5+2]=true;arr[i*5+3]=true;arr[i*5+4]=false},    //0
-                (-1,-1,-1) => {arr[i*5]=false;arr[i*5+1]=true;arr[i*5+2]=true;arr[i*5+3]=true;arr[i*5+4]=false},    //0
-                (0,-1,-1) => {arr[i*5]=true;arr[i*5+1]=true;arr[i*5+2]=true;arr[i*5+3]=true;arr[i*5+4]=false},     //0
-                (1,-1,-1) => {arr[i*5]=false;arr[i*5+1]=false;arr[i*5+2]=false;arr[i*5+3]=false;arr[i*5+4]=true},  //0
-                (-1,0,-1) => {arr[i*5]=true;arr[i*5+1]=false;arr[i*5+2]=false;arr[i*5+3]=false;arr[i*5+4]=true},   //0
-                (0,0,-1) => {arr[i*5]=false;arr[i*5+1]=true;arr[i*5+2]=false;arr[i*5+3]=false;arr[i*5+4]=true},   //0
-                (1,0,-1) => {arr[i*5]=true;arr[i*5+1]=true;arr[i*5+2]=false;arr[i*5+3]=false;arr[i*5+4]=true},    //0
-                (-1,1,-1) => {arr[i*5]=false;arr[i*5+1]=false;arr[i*5+2]=true;arr[i*5+3]=false;arr[i*5+4]=true},   //0
-                (0,1,-1) => {arr[i*5]=true;arr[i*5+1]=false;arr[i*5+2]=true;arr[i*5+3]=false;arr[i*5+4]=true},    //0
-                (1,1,-1) => {arr[i*5]=false;arr[i*5+1]=true;arr[i*5+2]=true;arr[i*5+3]=false;arr[i*5+4]=true},    //0
-                (-1,-1,0) => {arr[i*5]=true;arr[i*5+1]=true;arr[i*5+2]=true;arr[i*5+3]=false;arr[i*5+4]=true},     //1
-                (0,-1,0) => {arr[i*5]=false;arr[i*5+1]=false;arr[i*5+2]=false;arr[i*5+3]=true;arr[i*5+4]=true},   //1
-                (1,-1,0) => {arr[i*5]=true;arr[i*5+1]=false;arr[i*5+2]=false;arr[i*5+3]=true;arr[i*5+4]=true},    //1
-                (-1,0,0) => {arr[i*5]=false;arr[i*5+1]=true;arr[i*5+2]=false;arr[i*5+3]=true;arr[i*5+4]=true},    //2
-                _ => {error!("i={} integers[i*3]={},integers[i*3+1]={},integers[i*3+2]={}",i,integers[i*3],integers[i*3+1],integers[i*3+2]);return Err(())},
-            }
-        }
-        Ok(TxHash{arr})
-    }
 }
 
 impl fmt::Debug for TxHash {
@@ -238,7 +82,7 @@ impl fmt::Debug for TxHash {
 
 impl PartialEq for TxHash {
     fn eq(&self, other: &TxHash) -> bool {
-        for i in 0..SIZE_IN_BITS {
+        for i in 0..SIZE_IN_BYTES {
             if self.arr[i]!=other.arr[i] {
                 return false;
             }
@@ -252,210 +96,122 @@ impl Eq for TxHash {}
 impl ToString for TxHash{
 
     fn to_string(&self) -> String {
-        let mut s = String::with_capacity(SIZE_IN_TRYTES);
-        let mut i :usize = 0;
-        for _ in 0..SIZE_IN_TRYTES {
-            match (self.arr[i], self.arr[i + 1], self.arr[i + 2], self.arr[i + 3], self.arr[i + 4]) {
-                (false, false, false, false, false) => s.push('9'),
-                (true, false, false, false, false) => s.push('A'),
-                (false, true, false, false, false) => s.push('B'),
-                (true, true, false, false, false) => s.push('C'),
-                (false, false, true, false, false) => s.push('D'),
-                (true, false, true, false, false) => s.push('E'),
-                (false, true, true, false, false) => s.push('F'),
-                (true, true, true, false, false) => s.push('G'),
-                (false, false, false, true, false) => s.push('H'),
-                (true, false, false, true, false) => s.push('I'),
-                (false, true, false, true, false) => s.push('J'),
-                (true, true, false, true, false) => s.push('K'),
-                (false, false, true, true, false) => s.push('L'),
-                (true, false, true, true, false) => s.push('M'),
-                (false, true, true, true, false) => s.push('N'),
-                (true, true, true, true, false) => s.push('O'),
-                (false, false, false, false, true) => s.push('P'),
-                (true, false, false, false, true) => s.push('Q'),
-                (false, true, false, false, true) => s.push('R'),
-                (true, true, false, false, true) => s.push('S'),
-                (false, false, true, false, true) => s.push('T'),
-                (true, false, true, false, true) => s.push('U'),
-                (false, true, true, false, true) => s.push('V'),
-                (true, true, true, false, true) => s.push('W'),
-                (false, false, false, true, true) => s.push('X'),
-                (true, false, false, true, true) => s.push('Y'),
-                (false, true, false, true, true) => s.push('Z'),
-                _ => panic!(1),
+        let mut tryte_count = SIZE_IN_TRITS;
+        let mut response:String = "".to_string();
+        let mut remaining_count = 0;
+        let mut b0 :i8 = 0;
+        let mut b1 :i8 = 0;
+        for byte_index in 0..49 {
+            if tryte_count == 0 {break;}
+            let [t0,t1,t2,t3,t4] = i8_to_trits(self.arr[byte_index]);
+            match(remaining_count) {
+                0 => {
+                    response.push(tuple_2_char((t0, t1, t2)));
+                    tryte_count -=1;
+                    //(b0,b1) =(t3,t4);
+                    b0 = t3;
+                    b1 = t4;
+                    remaining_count = 2;
+                }
+                1 => {
+                    response.push(tuple_2_char((b0, t0, t1)));
+                    tryte_count -=1;
+                    if tryte_count == 0 {break;}
+                    response.push(tuple_2_char((t2, t3, t4)));
+                    tryte_count -=1;
+                    remaining_count = 0;
+                }
+                2 => {
+                    response.push(tuple_2_char((b0, b1, t0)));
+                    tryte_count -=1;
+                    if tryte_count == 0 {break;}
+                    response.push(tuple_2_char((t1, t2, t3)));
+                    tryte_count -=1;
+                    b0 = t4;
+                    remaining_count = 1;
+                }
+                _ => panic!("cannot append. remainig count = {}",remaining_count),
+
             }
-            i += 5;
         }
-        s
+        response
     }
 }
 
 impl FromStr for TxHash {
     type Err = ();
 
-    fn from_str(s: &str) -> Result<TxHash, ()> {
-        match s.len() {
-            SIZE_IN_TRYTES => {
-                let mut i = 0;
-                let mut arr :[bool;SIZE_IN_BITS] = [false;SIZE_IN_BITS];
-                for c in s.to_string().chars() {
-                    match c {
-                        '9' => {arr[i]=false;arr[i+1]=false;arr[i+2]=false;arr[i+3]=false;arr[i+4]=false}, //3
-                        'A' => {arr[i]=true;arr[i+1]=false;arr[i+2]=false;arr[i+3]=false;arr[i+4]=false},  //2
-                        'B' => {arr[i]=false;arr[i+1]=true;arr[i+2]=false;arr[i+3]=false;arr[i+4]=false},  //1
-                        'C' => {arr[i]=true;arr[i+1]=true;arr[i+2]=false;arr[i+3]=false;arr[i+4]=false},   //1
-                        'D' => {arr[i]=false;arr[i+1]=false;arr[i+2]=true;arr[i+3]=false;arr[i+4]=false},  //1
-                        'E' => {arr[i]=true;arr[i+1]=false;arr[i+2]=true;arr[i+3]=false;arr[i+4]=false},   //0
-                        'F' => {arr[i]=false;arr[i+1]=true;arr[i+2]=true;arr[i+3]=false;arr[i+4]=false},   //0
-                        'G' => {arr[i]=true;arr[i+1]=true;arr[i+2]=true;arr[i+3]=false;arr[i+4]=false},    //0
-                        'H' => {arr[i]=false;arr[i+1]=false;arr[i+2]=false;arr[i+3]=true;arr[i+4]=false},  //0
-                        'I' => {arr[i]=true;arr[i+1]=false;arr[i+2]=false;arr[i+3]=true;arr[i+4]=false},   //0
-                        'J' => {arr[i]=false;arr[i+1]=true;arr[i+2]=false;arr[i+3]=true;arr[i+4]=false},   //0
-                        'K' => {arr[i]=true;arr[i+1]=true;arr[i+2]=false;arr[i+3]=true;arr[i+4]=false},    //0
-                        'L' => {arr[i]=false;arr[i+1]=false;arr[i+2]=true;arr[i+3]=true;arr[i+4]=false},   //0
-                        'M' => {arr[i]=true;arr[i+1]=false;arr[i+2]=true;arr[i+3]=true;arr[i+4]=false},    //0
-                        'N' => {arr[i]=false;arr[i+1]=true;arr[i+2]=true;arr[i+3]=true;arr[i+4]=false},    //0
-                        'O' => {arr[i]=true;arr[i+1]=true;arr[i+2]=true;arr[i+3]=true;arr[i+4]=false},     //0
-                        'P' => {arr[i]=false;arr[i+1]=false;arr[i+2]=false;arr[i+3]=false;arr[i+4]=true},  //0
-                        'Q' => {arr[i]=true;arr[i+1]=false;arr[i+2]=false;arr[i+3]=false;arr[i+4]=true},   //0
-                        'R' => {arr[i]=false;arr[i+1]=true;arr[i+2]=false;arr[i+3]=false;arr[i+4]=true},   //0
-                        'S' => {arr[i]=true;arr[i+1]=true;arr[i+2]=false;arr[i+3]=false;arr[i+4]=true},    //0
-                        'T' => {arr[i]=false;arr[i+1]=false;arr[i+2]=true;arr[i+3]=false;arr[i+4]=true},   //0
-                        'U' => {arr[i]=true;arr[i+1]=false;arr[i+2]=true;arr[i+3]=false;arr[i+4]=true},    //0
-                        'V' => {arr[i]=false;arr[i+1]=true;arr[i+2]=true;arr[i+3]=false;arr[i+4]=true},    //0
-                        'W' => {arr[i]=true;arr[i+1]=true;arr[i+2]=true;arr[i+3]=false;arr[i+4]=true},     //1
-                        'X' => {arr[i]=false;arr[i+1]=false;arr[i+2]=false;arr[i+3]=true;arr[i+4]=true},   //1
-                        'Y' => {arr[i]=true;arr[i+1]=false;arr[i+2]=false;arr[i+3]=true;arr[i+4]=true},    //1
-                        'Z' => {arr[i]=false;arr[i+1]=true;arr[i+2]=false;arr[i+3]=true;arr[i+4]=true},    //2
-                        _ => return Err(()),
-                    }
-                    i += 5;
-                }
-                Ok(TxHash{arr})
+    fn from_str(trytes: &str) -> Result<TxHash, ()> {
+        let mut response: [i8;49] = [0;49];
 
+        let mut index_in_byte = 0;
+        let mut byte_index = 0;
+        for c in trytes.to_string().chars() {
+            match c {
+                '9' => add_trits((0,0,0),byte_index,index_in_byte,&mut response),
+                'A' => add_trits((1,0,0),byte_index,index_in_byte,&mut response),
+                'B' => add_trits((-1,1,0),byte_index,index_in_byte,&mut response),
+                'C' => add_trits((0,1,0),byte_index,index_in_byte,&mut response),
+                'D' => add_trits((1,1,0),byte_index,index_in_byte,&mut response),
+                'E' => add_trits((-1,-1,1),byte_index,index_in_byte,&mut response),
+                'F' => add_trits((0,-1,1),byte_index,index_in_byte,&mut response),
+                'G' => add_trits((1,-1,1),byte_index,index_in_byte,&mut response),
+                'H' => add_trits((-1,0,1),byte_index,index_in_byte,&mut response),
+                'I' => add_trits((0,0,1),byte_index,index_in_byte,&mut response),
+                'J' => add_trits((1,0,1),byte_index,index_in_byte,&mut response),
+                'K' => add_trits((-1,1,1),byte_index,index_in_byte,&mut response),
+                'L' => add_trits((0,1,1),byte_index,index_in_byte,&mut response),
+                'M' => add_trits((1,1,1),byte_index,index_in_byte,&mut response),
+                'N' => add_trits((-1,-1,-1),byte_index,index_in_byte,&mut response),
+                'O' => add_trits((0,-1,-1),byte_index,index_in_byte,&mut response),
+                'P' => add_trits((1,-1,-1),byte_index,index_in_byte,&mut response),
+                'Q' => add_trits((-1,0,-1),byte_index,index_in_byte,&mut response),
+                'R' => add_trits((0,0,-1),byte_index,index_in_byte,&mut response),
+                'S' => add_trits((1,0,-1),byte_index,index_in_byte,&mut response),
+                'T' => add_trits((-1,1,-1),byte_index,index_in_byte,&mut response),
+                'U' => add_trits((0,1,-1),byte_index,index_in_byte,&mut response),
+                'V' => add_trits((1,1,-1),byte_index,index_in_byte,&mut response),
+                'W' => add_trits((-1,-1,0),byte_index,index_in_byte,&mut response),
+                'X' => add_trits((0,-1,0),byte_index,index_in_byte,&mut response),
+                'Y' => add_trits((1,-1,0),byte_index,index_in_byte,&mut response),
+                'Z' => add_trits((-1,0,0),byte_index,index_in_byte,&mut response),
+                _ => return Err(()),
             }
-            _ => Err(())
-         }
+            if index_in_byte > 1 {byte_index +=1;}
+            index_in_byte = (index_in_byte+3)%5;
+        }
+        Ok(TxHash{arr:response})
     }
 
+}
+
+
+fn add_trits((t0,t1,t2) :(i8,i8,i8),byte_index :usize, index_in_byte :u32, byte_array :&mut [i8;49])->(){
+    let factor = 3_i8.pow(index_in_byte);
+    if index_in_byte<=2 {
+        byte_array[byte_index] += t0 * factor + t1 * 3 * factor + t2 * 9 *factor;
+    }
+    if index_in_byte==3 {
+        byte_array[byte_index] += t0 * factor + t1 * 3 * factor;
+        byte_array[byte_index+1] = t2;
+    }
+    if index_in_byte==4 {
+        byte_array[byte_index] += t0 * factor;
+        byte_array[byte_index+1] = t1+ 3*t2;
+    }
+    ()
 }
 
 impl Hash for TxHash {
     fn hash<S: hash::Hasher>(&self, state: &mut S) {
-        for i in 0..50 {
-            state.write_u8(u8_from_bool(self.arr[i], self.arr[i + 1], self.arr[i + 2], self.arr[i + 3], self.arr[i + 4], self.arr[i + 5], self.arr[i + 6], self.arr[i + 7]));
+        for i in 0..49 {
+            state.write_i8(self.arr[i]);
         }
-        state.write_u8(u8_from_bool(self.arr[400], self.arr[401], self.arr[402], self.arr[403], self.arr[404], false, false, false));
     }
 
 }
 
-fn u8_from_bool(b0 :bool,b1 :bool,b2 :bool,b3 :bool,b4 :bool,b5 :bool,b6 :bool,b7 :bool) ->u8{
-    let mut h :u8 = 0;
-    if b0 {h+=1};
-    if b1 {h+=2};
-    if b2 {h+=4};
-    if b3 {h+=8};
-    if b4 {h+=16};
-    if b5 {h+=32};
-    if b6 {h+=64};
-    if b7 {h+=128};
-    h
-}
 
-fn i8_from_bool(b0 :bool,b1 :bool,b2 :bool,b3 :bool,b4 :bool,b5 :bool,b6 :bool,b7 :bool,b8 :bool,b9 :bool) ->i8{
-    let mut h :i8 = 0;
-    match (b0,b1) {
-        (true,true) => h+=1,
-        (false,false) => h+=-1,
-        _ => (),
-    }
-    match (b2,b3) {
-        (true,true) => h+=3,
-        (false,false) => h+=-3,
-        _ => (),
-    }
-    match (b4,b5) {
-        (true,true) => h+=9,
-        (false,false) => h+=-9,
-        _ => (),
-    }
-    match (b6,b7) {
-        (true,true) => h+=27,
-        (false,false) => h+=-27,
-        _ => (),
-    }
-    match (b8,b9) {
-        (true,true) => h+=81,
-        (false,false) => h+=-81,
-        _ => (),
-    }
-    h
-}
-
-fn bools_from_i8(v :i8) -> (bool,bool,bool,bool,bool,bool,bool,bool,bool,bool) {
-    let mut b0 =true;
-    let mut b1 =false;
-    let mut b2 =true;
-    let mut b3 =false;
-    let mut b4 =true;
-    let mut b5 =false;
-    let mut b6 =true;
-    let mut b7 =false;
-    let mut b8 =true;
-    let mut b9 =false;
-
-    let mut value = v;
-    if value>=81 {
-        b8=true;b9=true;
-        value +=-81;
-    }else {
-        if value <= -81 {
-            b8 = false; b9 = false;
-            value += 81;
-        }
-    }
-    if value>=27 {
-        b6=true;b7=true;
-        value +=-27;
-    }else {
-        if value <= -27 {
-            b6 = false; b7 = false;
-            value += 27;
-        }
-    }
-    if value>=9 {
-        b4=true;b5=true;
-        value +=-9;
-    }else {
-        if value <= -9 {
-            b4 = false; b5 = false;
-            value += 9;
-        }
-    }
-    if value>=3 {
-        b2=true;b3=true;
-        value +=-3;
-    }else {
-        if value <= -3 {
-            b2 = false; b3 = false;
-            value += 3;
-        }
-    }
-    if value>=1 {
-        b0=true;b1=true;
-        value +=-27;
-    }else {
-        if value <= -1 {
-            b0 = false; b1 = false;
-            value += 1;
-        }
-    }
-
-
-    (b0,b1,b2,b3,b4,b5,b6,b7,b8,b9)
-}
 
 #[cfg(test)]
 mod tests {

@@ -1,12 +1,11 @@
 
-pub fn to_bytes(trytes: &str) -> Vec<i8>{
+pub fn to_bytes(trytes: &str) -> Result<Vec<i8>,&str>{
     let size_in_byte = if (trytes.len() * 3) % 5 >0 {((trytes.len()*3)/5)+1} else {(trytes.len()*3)/5};
     let mut response = Vec::with_capacity(size_in_byte);
-    for i in 0..size_in_byte {
+    for _i in 0..size_in_byte {
         response.push(0);
     }
     let mut index_in_byte = 0;
-    let mut factor = 1;
     let mut byte_index = 0;
     for c in trytes.to_string().chars() {
         match c {
@@ -37,68 +36,71 @@ pub fn to_bytes(trytes: &str) -> Vec<i8>{
             'X' => add_trits((0,-1,0),byte_index,index_in_byte,&mut response),
             'Y' => add_trits((1,-1,0),byte_index,index_in_byte,&mut response),
             'Z' => add_trits((-1,0,0),byte_index,index_in_byte,&mut response),
-            _ => (),
+            _ => return Err("Invalid tryte"),
         }
         if(index_in_byte > 1){byte_index +=1;}
         index_in_byte = (index_in_byte+3)%5;
     }
-    response
+    Ok(response)
 
 }
 
 fn add_trits((t0,t1,t2) :(i8,i8,i8),byte_index :usize, index_in_byte :u32, byte_array :&mut Vec<i8>)->(){
-    let mut factor = 3_i8.pow(index_in_byte);
-    if(index_in_byte<=2) {
-        byte_array[byte_index] += (t0 * factor + t1 * 3 * factor + t2 * 9 *factor);
+    let factor = 3_i8.pow(index_in_byte);
+    if index_in_byte<=2 {
+        byte_array[byte_index] += t0 * factor + t1 * 3 * factor + t2 * 9 *factor;
     }
-    if(index_in_byte==3) {
-        byte_array[byte_index] += (t0 * factor + t1 * 3 * factor);
+    if index_in_byte==3 {
+        byte_array[byte_index] += t0 * factor + t1 * 3 * factor;
         byte_array[byte_index+1] = t2;
     }
-    if(index_in_byte==4) {
-        byte_array[byte_index] += (t0 * factor);
+    if index_in_byte==4 {
+        byte_array[byte_index] += t0 * factor;
         byte_array[byte_index+1] = t1+ 3*t2;
     }
     ()
 }
 
-fn i8_to_trits(value :i8) -> [i8;5]{
+pub fn i8_to_trits(value :i8) -> [i8;5]{
     let mut v = value;
     let mut t5 :i8= 0;
     let mut t4 :i8 = 0;
     let mut t3 :i8= 0;
     let mut t2 :i8= 0;
-    if(v>40){
+    if v>40 {
         t5 =1;
         v += -81;
     }
-    if(v<=-41){
+    if v<=-41 {
         t5 = -1;
         v += 81;
     }
-    if(v>14){
+    if v>13 {
         t4 =1;
         v += -27;
     }
-    if(v<=-15){
+    if v<=-14 {
         t4 = -1;
         v += 27;
     }
-    if(v>4){
+    if v>4 {
         t3 =1;
         v += -9;
     }
-    if(v<=-5){
+    if v<=-5 {
         t3 = -1;
         v += 9;
     }
-    if(v>1){
+    if v>1 {
         t2 =1;
         v += -3;
     }
-    if(v <= -2){
+    if v <= -2 {
         t2 = -1;
         v += 3;
+    }
+    if v==-2 {
+        println!("v==-2 value={}",value);
     }
     [v,t2,t3,t4,t5]
 }
@@ -127,7 +129,6 @@ pub fn internal_trailing_zeros(bytes :&Vec<i8>, index :usize) ->i32 {
 }
 
 pub fn to_string(bytes :&Vec<i8>, mut tryte_count :i32) -> String {
-    let mut byte_index = 0;
     let mut response:String = "".to_string();
     let mut remaining_count = 0;
     let mut b0 :i8 = 0;
@@ -135,7 +136,7 @@ pub fn to_string(bytes :&Vec<i8>, mut tryte_count :i32) -> String {
     for byte_index in 0..bytes.len() {
         if tryte_count == 0 {break;}
         let [t0,t1,t2,t3,t4] = i8_to_trits(bytes[byte_index]);
-        match(remaining_count) {
+        match remaining_count {
             0 => {
                 response.push(tuple_2_char((t0, t1, t2)));
                 tryte_count -=1;
@@ -168,7 +169,7 @@ pub fn to_string(bytes :&Vec<i8>, mut tryte_count :i32) -> String {
     response
 }
 
-fn tuple_2_char((t0,t1,t2) :(i8,i8,i8)) -> char {
+pub fn tuple_2_char((t0,t1,t2) :(i8,i8,i8)) -> char {
     match (t0,t1,t2) {
         (0,0,0) => '9',
         (1,0,0) => 'A',
@@ -202,13 +203,9 @@ fn tuple_2_char((t0,t1,t2) :(i8,i8,i8)) -> char {
 }
 
 
-pub fn to_trits(bytes :&Vec<i8>, mut tryte_count :usize) -> Vec<i8> {
-    let mut byte_index = 0;
+pub fn to_trits(bytes :&Vec<i8>, tryte_count :usize) -> Vec<i8> {
     let mut trits_count = tryte_count*3;
     let mut response:Vec<i8> = Vec::with_capacity(trits_count);
-    let mut remaining_count = 0;
-    let mut b0 :i8 = 0;
-    let mut b1 :i8 = 0;
     for byte_index in 0..bytes.len() {
         if trits_count == 0 {break;}
         let [t0,t1,t2,t3,t4] = i8_to_trits(bytes[byte_index]);
@@ -236,6 +233,110 @@ pub fn to_trits(bytes :&Vec<i8>, mut tryte_count :usize) -> Vec<i8> {
     response
 }
 
+pub fn trits_to_bytes(trits :&Vec<i8>) -> (Vec<i8>, usize) {
+    let trits_count = trits.len();
+    let byte_count = if trits_count % 3 > 0 {trits_count/3 +1} else {trits_count/3};
+    let mut response :Vec<i8> = Vec::with_capacity(byte_count);
+    let mut trit_index = 0;
+    while trit_index < trits_count {
+        if trits_count-trit_index >= 5 {
+            trit_index +=5;
+            response.push(trit_to_i8((trits[trit_index],trits[trit_index+1],trits[trit_index+2],trits[trit_index+3],trits[trit_index+4])))
+        }else{
+            match trits_count-trit_index {
+                4 => {
+                    response.push(trit_to_i8((trits[trit_index],trits[trit_index+1],trits[trit_index+2],trits[trit_index+3],0)));
+                },
+                3 => {
+                    response.push(trit_to_i8((trits[trit_index],trits[trit_index+1],trits[trit_index+2],0,0)));
+                },
+                2 => {
+                    response.push(trit_to_i8((trits[trit_index],trits[trit_index+1],0,0,0)));
+                },
+                1 => {
+                    response.push(trit_to_i8((trits[trit_index],0,0,0,0)));
+                },
+                _ => panic!("impossible")
+            }
+            trit_index = trits_count;
+        }
+    }
+    (response,trits_count)
+}
+
+fn trit_to_i8((t0,t1,t2,t3,t4) :(i8,i8,i8,i8,i8))->i8{
+    t0+t1*3+t2*9+t3*27+t4*81
+}
+
+pub fn trytes_to_trites(trytes :String) -> Vec<i8> {
+    let sz = 3*trytes.len();
+    let mut integers :Vec<i8> = Vec::with_capacity(sz);
+    for c in trytes.chars() {
+        match c {
+            '9' => integers.extend_from_slice(&[0,0,0]),
+            'A' => integers.extend_from_slice(&[1,0,0]),
+            'B' => integers.extend_from_slice(&[-1,1,0]),
+            'C' => integers.extend_from_slice(&[0,1,0]),
+            'D' => integers.extend_from_slice(&[1,1,0]),
+            'E' => integers.extend_from_slice(&[-1,-1,1]),
+            'F' => integers.extend_from_slice(&[0,-1,1]),
+            'G' => integers.extend_from_slice(&[1,-1,1]),
+            'H' => integers.extend_from_slice(&[-1,0,1]),
+            'I' => integers.extend_from_slice(&[0,0,1]),
+            'J' => integers.extend_from_slice(&[1,0,1]),
+            'K' => integers.extend_from_slice(&[-1,1,1]),
+            'L' => integers.extend_from_slice(&[0,1,1]),
+            'M' => integers.extend_from_slice(&[1,1,1]),
+            'N' => integers.extend_from_slice(&[-1,-1,-1]),
+            'O' => integers.extend_from_slice(&[0,-1,-1]),
+            'P' => integers.extend_from_slice(&[1,-1,-1]),
+            'Q' => integers.extend_from_slice(&[-1,0,-1]),
+            'R' => integers.extend_from_slice(&[0,0,-1]),
+            'S' => integers.extend_from_slice(&[1,0,-1]),
+            'T' => integers.extend_from_slice(&[-1,1,-1]),
+            'U' => integers.extend_from_slice(&[0,1,-1]),
+            'V' => integers.extend_from_slice(&[1,1,-1]),
+            'W' => integers.extend_from_slice(&[-1,-1,0]),
+            'X' => integers.extend_from_slice(&[0,-1,0]),
+            'Y' => integers.extend_from_slice(&[1,-1,0]),
+            'Z' => integers.extend_from_slice(&[-1,0,0]),
+            _ => (),
+        }
+    };
+    integers
+}
+
+pub fn hash_trits_to_bytes(trits :[i8;243]) -> [i8;49] {
+    let mut response = [0;49];
+    let mut trit_index = 0;
+    let mut byte_index = 0;
+    while trit_index < 243 {
+        if 243-trit_index >= 5 {
+            response[byte_index] = trit_to_i8((trits[trit_index],trits[trit_index+1],trits[trit_index+2],trits[trit_index+3],trits[trit_index+4]));
+            trit_index +=5;
+        }else{
+            match 243-trit_index {
+                4 => {
+                    response[byte_index] = trit_to_i8((trits[trit_index],trits[trit_index+1],trits[trit_index+2],trits[trit_index+3],0));
+                },
+                3 => {
+                    response[byte_index] = trit_to_i8((trits[trit_index],trits[trit_index+1],trits[trit_index+2],0,0));
+                },
+                2 => {
+                    response[byte_index] = trit_to_i8((trits[trit_index],trits[trit_index+1],0,0,0));
+                },
+                1 => {
+                    response[byte_index] = trit_to_i8((trits[trit_index],0,0,0,0));
+                },
+                _ => panic!("impossible")
+            }
+            trit_index = 243;
+        }
+        byte_index +=1;
+
+    }
+    response
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -248,19 +349,19 @@ mod tests {
 
         #[test]
     fn to_string_test(){
-        assert_eq!(to_string(&to_bytes("A"),1),"A".to_string());
-        assert_eq!(to_string(&to_bytes("9"),1),"9".to_string());
-        assert_eq!(to_string(&to_bytes("ABC"),3),"ABC".to_string());
-        assert_eq!(to_string(&to_bytes("AB"),2),"AB".to_string());
+        assert_eq!(to_string(&to_bytes("A").unwrap(),1),"A".to_string());
+        assert_eq!(to_string(&to_bytes("9").unwrap(),1),"9".to_string());
+        assert_eq!(to_string(&to_bytes("ABC").unwrap(),3),"ABC".to_string());
+        assert_eq!(to_string(&to_bytes("AB").unwrap(),2),"AB".to_string());
     }
     #[test]
     fn trailing_zeros_test(){
-        assert_eq!(trailing_zeros(&to_bytes("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM")),0);
-        assert_eq!(trailing_zeros(&to_bytes("999999999999999999999999999999999999999999999999999999999999999999999999999999999")),243);
-        assert_eq!(trailing_zeros(&to_bytes("99999999999999999999999999999999999999999999999999999999999999999999999999999999A")),2);
-        assert_eq!(trailing_zeros(&to_bytes("99999999999999999999999999999999999999999999999999999999999999999999999999999999B")),1);
-        assert_eq!(trailing_zeros(&to_bytes("9999999999999999999999999999999999999999999999999999999999999999999999999999999Z9")),5);
-        assert_eq!(trailing_zeros(&to_bytes("999999999999999999999999999999999999999999999999999999999999999999999999999999Z99")),8);
+        assert_eq!(trailing_zeros(&to_bytes("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM").unwrap()),0);
+        assert_eq!(trailing_zeros(&to_bytes("999999999999999999999999999999999999999999999999999999999999999999999999999999999").unwrap()),243);
+        assert_eq!(trailing_zeros(&to_bytes("99999999999999999999999999999999999999999999999999999999999999999999999999999999A").unwrap()),2);
+        assert_eq!(trailing_zeros(&to_bytes("99999999999999999999999999999999999999999999999999999999999999999999999999999999B").unwrap()),1);
+        assert_eq!(trailing_zeros(&to_bytes("9999999999999999999999999999999999999999999999999999999999999999999999999999999Z9").unwrap()),5);
+        assert_eq!(trailing_zeros(&to_bytes("999999999999999999999999999999999999999999999999999999999999999999999999999999Z99").unwrap()),8);
     }
 
     #[test]
@@ -277,20 +378,20 @@ mod tests {
 
     #[test]
     fn to_bytes_test() {
-        assert_eq!(to_bytes("9"),[0]);
-        assert_eq!(to_bytes("A"),[1]);
-        assert_eq!(to_bytes("AA"),[28,0]);
-        assert_eq!(to_bytes("99"),[0,0]);
-        assert_eq!(to_bytes("M"),[13]);
-        assert_eq!(to_bytes("Z"),[-1]);
-        assert_eq!(to_bytes("MDIY9"),[121,108,-1]);
+        assert_eq!(to_bytes("9").unwrap(),[0]);
+        assert_eq!(to_bytes("A").unwrap(),[1]);
+        assert_eq!(to_bytes("AA").unwrap(),[28,0]);
+        assert_eq!(to_bytes("99").unwrap(),[0,0]);
+        assert_eq!(to_bytes("M").unwrap(),[13]);
+        assert_eq!(to_bytes("Z").unwrap(),[-1]);
+        assert_eq!(to_bytes("MDIY9").unwrap(),[121,108,-1]);
         let mut v =Vec::with_capacity(49);
         for _ in 0..48 {v.push(121)}
         v.push(13);
-        assert_eq!(to_bytes("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"),v);
+        assert_eq!(to_bytes("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM").unwrap(),v);
         let mut v =Vec::with_capacity(49);
         for _ in 0..49 {v.push(0)}
-        assert_eq!(to_bytes("999999999999999999999999999999999999999999999999999999999999999999999999999999999"),v);
+        assert_eq!(to_bytes("999999999999999999999999999999999999999999999999999999999999999999999999999999999").unwrap(),v);
     }
 
 
