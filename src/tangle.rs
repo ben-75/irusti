@@ -5,7 +5,6 @@ use txhash::TxHash;
 
 pub struct Tangle {
     db :DB,
-    pub db_path :String,
     cf_default :ColumnFamily,
     cf_transaction :ColumnFamily,
     cf_transaction_metadata :ColumnFamily,
@@ -20,8 +19,7 @@ pub struct Tangle {
 
 impl Tangle {
 
-    pub fn safe_new(db_path: String, is_testnet :bool) -> Tangle {
-
+    pub fn get_effective_path(db_path: String, is_testnet :bool) -> String {
         let mut effective_db_path = db_path;
         if is_testnet {
             if effective_db_path.eq(&"mainnetdb".to_string()) {
@@ -34,7 +32,7 @@ impl Tangle {
                 effective_db_path = "mainnetdb".to_string();
             }
         }
-        Tangle::new(effective_db_path)
+        effective_db_path
     }
 
     pub fn new(db_path: String) -> Tangle {
@@ -89,28 +87,32 @@ impl Tangle {
             cf_obsolete_tag : DB::cf_handle(&db,"obsoleteTag").unwrap(),
             cf_tag: DB::cf_handle(&db,"tag").unwrap(),
             db,
-            db_path,
-
         }
     }
 
-    pub fn exists(&self, txhash :&TxHash) -> bool {
-//        match self.db.get_cf(self.cf_transaction,txhash.to_i8()) {
-//            Err(_) => {error!("Database read failure");false},
-//            Ok(x) => {
-//                match x.unwrap() {
-//                    None => false,
-//                    Some(_) => true,
-//                }
-//            }
-//        }
-        false
+    pub fn transaction_exists(&self, txhash :&TxHash) -> bool {
+        match self.db.get_cf(self.cf_transaction,txhash.as_u8_array()) {
+            Err(_) => {error!("Database read failure");false},
+            Ok(x) => {
+                match x {
+                    None => false,
+                    Some(_) => true,
+                }
+            }
+        }
     }
 
-    pub fn shutdown(self){
-        let opt= Options::default();
-        info!("Shutting down database at {}",self.db_path);
-        match DB::destroy(&opt, self.db_path){
+    pub fn transaction_save(&self, txhash :&TxHash, value :&[u8]) -> Result<(),String> {
+        match self.db.put_cf(self.cf_transaction,txhash.as_u8_array(), value){
+            Ok(()) => Ok(()),
+            Err(x) => Err(x.to_string()),
+        }
+    }
+
+    pub fn shutdown(db_path :String){
+        let opts= Options::default();
+        info!("Shutting down database at {}", db_path);
+        match DB::destroy(&opts, db_path){
             Ok(_info) => info!("Shutdown database."),
             Err(error) => error!("Fail to shutdown db. {:?}", error),
         }

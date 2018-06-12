@@ -38,7 +38,7 @@ pub fn to_bytes(trytes: &str) -> Result<Vec<i8>,&str>{
             'Z' => add_trits((-1,0,0),byte_index,index_in_byte,&mut response),
             _ => return Err("Invalid tryte"),
         }
-        if(index_in_byte > 1){byte_index +=1;}
+        if index_in_byte > 1 {byte_index +=1;}
         index_in_byte = (index_in_byte+3)%5;
     }
     Ok(response)

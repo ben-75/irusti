@@ -36,7 +36,7 @@ impl<'a,'b> TransactionRequester<'a,'b> {
     }
 
     fn transaction_to_request_is_full(&self) -> bool{
-        self.transactions_to_request.len()>self.max_size
+        self.transactions_to_request.len()>=self.max_size
     }
 
     pub fn clear_transaction_request(&mut self, hash :TxHash) -> bool {
@@ -46,7 +46,7 @@ impl<'a,'b> TransactionRequester<'a,'b> {
     }
 
     pub fn request_transaction(&mut self, hash :TxHash, milestone :bool) -> &mut TransactionRequester<'a,'b>{
-        if !hash.eq(&self.null_hash) && !self.tangle.exists(&hash) {
+        if !hash.eq(&self.null_hash) && !self.tangle.transaction_exists(&hash) {
             if milestone  {
                 self.milestone_transactions_to_request.remove(&hash);
                 self.milestone_transactions_to_request.insert(hash);
@@ -78,7 +78,8 @@ impl<'a,'b> TransactionRequester<'a,'b> {
                 match next {
                     None => break,
                     Some((idx, item)) => {
-                        if self.tangle.exists(item) {
+                        if self.tangle.transaction_exists(item) {
+                            first_unknown +=1;
                             self.message_q.publish(&format!("rtl {}", item.to_string()));
                         } else {
                             first_unknown = idx;
@@ -106,6 +107,7 @@ impl<'a,'b> TransactionRequester<'a,'b> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rand::{thread_rng, Rng};
 
     fn setup<'a,'b>((tg,mq) :(&'a Tangle,&'b MessageQ)) -> TransactionRequester<'a,'b>{
         let test_max_size = 100;
@@ -120,14 +122,6 @@ mod tests {
     }
 
     fn setup_internal<'a,'b>((tg,mq) :(&'a Tangle,&'b MessageQ), test_max_size: usize, p_remove_transaction_test: f32) -> TransactionRequester<'a,'b> {
-//        let tangle = &Tangle::safe_new(db_path.to_string(),
-//                                      true);
-//        let message_q = &MessageQ::new(
-//            1,
-//            None,
-//            5566,
-//            false);
-//        let message_q_ref = Rc::new(message_q);
         let transactions_to_request = LinkedHashSet::with_capacity(test_max_size);
         let milestone_transactions_to_request = LinkedHashSet::with_capacity(500);
         let null_hash = TxHash::new("999999999999999999999999999999999999999999999999999999999999999999999999999999999");
@@ -143,8 +137,7 @@ mod tests {
     }
 
     fn make_tangle_mq(db_path :&str) -> (Tangle, MessageQ){
-        (Tangle::safe_new(db_path.to_string(),
-                           true),MessageQ::new(
+        (Tangle::new(db_path.to_string()),MessageQ::new(
             1,
             None,
             5566,
@@ -152,21 +145,55 @@ mod tests {
     }
     #[test]
     fn size_test() {
-        let tg_mq = make_tangle_mq("dbtests/unittest1");
-        let mut transaction_requester = setup((&tg_mq.0, &tg_mq.1));
-        assert_eq!(transaction_requester.size(),0);
-        assert_eq!(transaction_requester.transaction_to_request_is_full(),false);
-        assert_eq!(transaction_requester.get_transactions_to_request().len(),0);
+        {
+            let tg_mq = make_tangle_mq("dbtests/unittest1");
+            let mut transaction_requester = setup((&tg_mq.0, &tg_mq.1));
+            assert_eq!(transaction_requester.size(),0);
+            assert_eq!(transaction_requester.transaction_to_request_is_full(),false);
+            assert_eq!(transaction_requester.get_transactions_to_request().len(),0);
+        }
+        Tangle::shutdown("dbtests/unittest1".to_string());
     }
 
     #[test]
     fn request_transaction_test() {
-        let tg_mq = make_tangle_mq("dbtests/unittest2");
+        {
+            let tg_mq = make_tangle_mq("dbtests/unittest2");
+            let mut transaction_requester = setup((&tg_mq.0, &tg_mq.1));
+            let h1 = TxHash::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9");
+            transaction_requester.request_transaction(h1, false);
+            assert_eq!(transaction_requester.size(), 1);
+            assert_eq!(transaction_requester.transaction_to_request(false).unwrap(), h1);
+        };
+        Tangle::shutdown("dbtests/unittest2".to_string());
+    }
+
+    #[test]
+    fn existing_request_transaction_test() {
+        {
+            let tg_mq = make_tangle_mq("dbtests/unittest6");
+            let mut transaction_requester = setup((&tg_mq.0, &tg_mq.1));
+            let h1 = TxHash::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9");
+            &tg_mq.0.transaction_save(&h1, &[1,2,3]);
+            transaction_requester.request_transaction(h1,false);
+            assert_eq!(transaction_requester.size(),0);
+            assert_eq!(transaction_requester.transaction_to_request(false).is_none(),true);
+        }
+        Tangle::shutdown("dbtests/unittest6".to_string());
+    }
+
+    #[test]
+    fn existing_request_transaction_test2() {
+        let tg_mq = make_tangle_mq("dbtests/unittest7");
         let mut transaction_requester = setup((&tg_mq.0, &tg_mq.1));
-        let h1 = TxHash::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9");
+        let h1 = TxHash::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVW9999");
         transaction_requester.request_transaction(h1,false);
         assert_eq!(transaction_requester.size(),1);
-        assert_eq!(transaction_requester.transaction_to_request(false).unwrap(),h1);
+        &tg_mq.0.transaction_save(&h1, &[1,2,3]);
+
+        assert_eq!(transaction_requester.transaction_to_request(false).is_none(),true);
+        assert_eq!(transaction_requester.size(),0);
+
     }
 
     #[test]
@@ -204,6 +231,50 @@ mod tests {
         assert_eq!(transaction_requester.size(),2);
         assert_eq!(transaction_requester.transaction_to_request(true).unwrap(),h2);
         assert_eq!(transaction_requester.size(),1);
+    }
+
+    #[test]
+    fn capacity_limited(){
+        let tg_mq = make_tangle_mq("dbtests/unittest8");
+        let mut transaction_requester = setup((&tg_mq.0, &tg_mq.1));
+        for i in 0..(2*transaction_requester.max_size) {
+            transaction_requester.request_transaction(TxHash::new(get_random_transaction_hash().as_ref()), false);
+        }
+        assert_eq!(transaction_requester.size(),transaction_requester.max_size);
+    }
+
+    #[test]
+    fn milestone_capacity_not_limited(){
+        let tg_mq = make_tangle_mq("dbtests/unittest9");
+        let mut transaction_requester = setup((&tg_mq.0, &tg_mq.1));
+        for i in 0..(2*transaction_requester.max_size) {
+            transaction_requester.request_transaction(TxHash::new(get_random_transaction_hash().as_ref()), true);
+        }
+        assert_eq!(transaction_requester.size(),2*transaction_requester.max_size);
+    }
+
+    #[test]
+    fn mixed_capacity_limited(){
+        let tg_mq = make_tangle_mq("dbtests/unittest10");
+        let mut transaction_requester = setup((&tg_mq.0, &tg_mq.1));
+        for i in 0..(4*transaction_requester.max_size) {
+            transaction_requester.request_transaction(TxHash::new(get_random_transaction_hash().as_ref()), i%2==0);
+        }
+        assert_eq!(transaction_requester.size(),3*transaction_requester.max_size);
+    }
+
+    fn get_random_transaction_hash() -> String {
+        let mut rng = rand::thread_rng();
+        let idx = rng.gen_range(0, 27);
+        let mut h :String = "".to_string();
+        for _ in 0..81 {
+            let idx :u8 = rng.gen_range(0, 27);
+            match idx {
+                0 => h.push('9'),
+                x => h.push((x+64) as char),
+            }
+        }
+        h
     }
 
 }

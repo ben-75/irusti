@@ -5,8 +5,6 @@ use curl::Sponge;
 use std::hash::{Hash, self};
 use std::fmt;
 use converter::i8_to_trits;
-use converter::to_bytes;
-use converter::to_trits;
 use converter::hash_trits_to_bytes;
 use converter::tuple_2_char;
 use converter::trytes_to_trites;
@@ -23,6 +21,10 @@ impl TxHash {
 
     pub fn new(trytes :&str) -> TxHash {
         TxHash::from_str(trytes).unwrap()
+    }
+
+    pub fn as_u8_array(&self) -> &[u8;SIZE_IN_BYTES] {
+        unsafe { &*(&self.arr as *const _  as *const [u8;SIZE_IN_BYTES]) }
     }
 
     pub fn trailing_zeros(&self) -> i32 {
@@ -104,7 +106,7 @@ impl ToString for TxHash{
         for byte_index in 0..49 {
             if tryte_count == 0 {break;}
             let [t0,t1,t2,t3,t4] = i8_to_trits(self.arr[byte_index]);
-            match(remaining_count) {
+            match remaining_count {
                 0 => {
                     response.push(tuple_2_char((t0, t1, t2)));
                     tryte_count -=1;

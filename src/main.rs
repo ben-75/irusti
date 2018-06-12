@@ -227,26 +227,29 @@ fn main() {
         }
     }
 
-    let tangle = Tangle::safe_new(configuration.get_param(DefaultConfSettings::DbPath).unwrap(),
-                              configuration.get_flag(DefaultConfSettings::TESTNET));
-    let tips_view_model = TipsViewModel::new();
-
-    let message_q = MessageQ::new(
-        Configuration::integer_param(&configuration, DefaultConfSettings::ZmqThreads),
-        Configuration::stringify_param(&configuration, DefaultConfSettings::ZmqIpc),
-        Configuration::integer_param(&configuration, DefaultConfSettings::ZmqPort),
-        Configuration::booling_param(&configuration, DefaultConfSettings::ZmqEnabled)
-    );
-    message_q.publish("hey there");
+    let db_path = Tangle::get_effective_path(configuration.get_param(DefaultConfSettings::DbPath).unwrap(),
+                                             configuration.get_flag(DefaultConfSettings::TESTNET));
+    let db_path_copy = db_path.clone();
     {
-        let transaction_requester = TransactionRequester::new(10000,
-                                                              configuration.floating_param(DefaultConfSettings::PRemoveRequest),
-                                                              &tangle, &message_q);
-        let iota = Iota::new(configuration);
-        iota.shutdown();
-    }
-    message_q.shutdown();
+        let tangle = Tangle::new(db_path);
+        let tips_view_model = TipsViewModel::new();
 
-    tangle.shutdown();
+        let message_q = MessageQ::new(
+            Configuration::integer_param(&configuration, DefaultConfSettings::ZmqThreads),
+            Configuration::stringify_param(&configuration, DefaultConfSettings::ZmqIpc),
+            Configuration::integer_param(&configuration, DefaultConfSettings::ZmqPort),
+            Configuration::booling_param(&configuration, DefaultConfSettings::ZmqEnabled)
+        );
+        message_q.publish("hey there");
+        {
+            let transaction_requester = TransactionRequester::new(10000,
+                                                                  configuration.floating_param(DefaultConfSettings::PRemoveRequest),
+                                                                  &tangle, &message_q);
+            let iota = Iota::new(configuration);
+            iota.shutdown();
+        }
+        message_q.shutdown();
+    }
+    Tangle::shutdown(db_path_copy);
     info!("Shutdown completed");
 }
