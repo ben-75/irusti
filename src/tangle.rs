@@ -109,6 +109,13 @@ impl Tangle {
         }
     }
 
+    pub fn transaction_delete(&self, txhash :&TxHash) -> Result<(),String> {
+        match self.db.delete_cf(self.cf_transaction,txhash.as_u8_array()){
+            Ok(()) => Ok(()),
+            Err(x) => Err(x.to_string()),
+        }
+    }
+
     pub fn shutdown(db_path :String){
         let opts= Options::default();
         info!("Shutting down database at {}", db_path);

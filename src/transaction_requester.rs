@@ -108,6 +108,7 @@ impl<'a,'b> TransactionRequester<'a,'b> {
 mod tests {
     use super::*;
     use rand::{thread_rng, Rng};
+    use std::fs;
 
     fn setup<'a,'b>((tg,mq) :(&'a Tangle,&'b MessageQ)) -> TransactionRequester<'a,'b>{
         let test_max_size = 100;
@@ -184,15 +185,20 @@ mod tests {
 
     #[test]
     fn existing_request_transaction_test2() {
-        let tg_mq = make_tangle_mq("dbtests/unittest7");
-        let mut transaction_requester = setup((&tg_mq.0, &tg_mq.1));
-        let h1 = TxHash::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVW9999");
-        transaction_requester.request_transaction(h1,false);
-        assert_eq!(transaction_requester.size(),1);
-        &tg_mq.0.transaction_save(&h1, &[1,2,3]);
+        {
+            let tg_mq = make_tangle_mq("dbtests/unittest7");
+            let mut transaction_requester = setup((&tg_mq.0, &tg_mq.1));
+            let h1 = TxHash::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVW9999");
+            transaction_requester.request_transaction(h1, false);
+            assert_eq!(transaction_requester.size(), 1);
+            &tg_mq.0.transaction_save(&h1, &[1, 2, 3]);
 
-        assert_eq!(transaction_requester.transaction_to_request(false).is_none(),true);
-        assert_eq!(transaction_requester.size(),0);
+            assert_eq!(transaction_requester.transaction_to_request(false).is_none(), true);
+            assert_eq!(transaction_requester.size(), 0);
+            &tg_mq.0.transaction_delete(&h1);
+
+        }
+        Tangle::shutdown("dbtests/unittest7".to_string());
 
     }
 
