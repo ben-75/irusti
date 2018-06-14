@@ -11,6 +11,7 @@ use converter::trytes_to_trites;
 
 const SIZE_IN_TRITS :usize = 243;
 const SIZE_IN_BYTES :usize = 49;
+const NULL_HASH :TxHash = TxHash{arr:[0_i8;49]};
 
 #[derive(Copy,Clone)]
 pub struct TxHash{
@@ -72,7 +73,9 @@ impl TxHash {
         })
     }
 
-
+    pub fn is_null_hash(&self) -> bool{
+        self.eq(&NULL_HASH)
+    }
 
 }
 
