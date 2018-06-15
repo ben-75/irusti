@@ -272,15 +272,29 @@ mod tests {
     fn get_random_transaction_hash() -> String {
         let mut rng = rand::thread_rng();
         let idx = rng.gen_range(0, 27);
-        let mut h :String = "".to_string();
+        let mut random_h :String = "".to_string();
         for _ in 0..81 {
             let idx :u8 = rng.gen_range(0, 27);
             match idx {
-                0 => h.push('9'),
-                x => h.push((x+64) as char),
+                0 => random_h.push('9'),
+                x => random_h.push((x+64) as char),
             }
         }
-        h
+        random_h
+    }
+
+    fn get_random_transaction_trytes() -> String {
+        let mut rng = rand::thread_rng();
+        let idx = rng.gen_range(0, 27);
+        let mut random_tx :String = "".to_string();
+        for _ in 0..2673 {
+            let idx :u8 = rng.gen_range(0, 27);
+            match idx {
+                0 => random_tx.push('9'),
+                x => random_tx.push((x+64) as char),
+            }
+        }
+        random_tx
     }
 
 }
