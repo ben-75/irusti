@@ -24,6 +24,7 @@ pub mod tips_view_model;
 pub mod transaction_requester;
 pub mod converter;
 pub mod transaction_validator;
+pub mod transaction;
 
 const APP_NAME : &'static str = "IRustI";
 const VERSION : &'static str = "1.4.2.4";
