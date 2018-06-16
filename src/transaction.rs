@@ -1,3 +1,4 @@
+use converter::to_bytes;
 
 const SIZE :usize = 1604;
 const TAG_SIZE_IN_BYTES :usize = 17; // = ceil(81 TRITS / 5 TRITS_PER_BYTE)
@@ -48,7 +49,18 @@ struct Transaction {
 
 impl Transaction {
 
-    fn is_value_valid(&self) -> bool {
+    pub fn new(signature_message_fragment :&str) -> Result<Transaction,String>{
+        let mut arr = [0_i8;SIZE];
+        let msg = to_bytes(signature_message_fragment);
+        match msg {
+            Err(x) => return Err(x.to_string()),
+            Ok(x) => {
+                arr[0..x.len()].copy_from_slice(x.as_ref());
+            }
+        }
+        Ok(Transaction{arr})
+    }
+    pub fn is_value_valid(&self) -> bool {
         let first_byte_index = 1367;//(VALUE_TRINARY_OFFSET + VALUE_USABLE_TRINARY_SIZE)/5;
         let last_byte_index = 1377;//(VALUE_TRINARY_OFFSET + VALUE_TRINARY_SIZE)/5;
         for i in (1367_usize..1377_usize).rev() {
