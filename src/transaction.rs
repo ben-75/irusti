@@ -291,6 +291,7 @@ impl Transaction {
         i64_from_bytes(&self.arr.to_vec(),40,VALUE_BYTE_OFFSET,VALUE_BIT_OFFSET)
     }
     pub fn last_address_trit_is_zero(&self) -> bool {
+        //TODO : implement this
         false
     }
     pub fn is_value_valid(&self) -> bool {
