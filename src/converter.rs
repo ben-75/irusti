@@ -109,6 +109,31 @@ pub fn u64_to_trits(value :i64) -> [i8;40]{
     i64_to_trits(value as i64)
 }
 
+pub fn u64_from_trits(trits :Vec<i8>)->u64 {
+    let mut response :i64=0;
+    let mut factor :i64 = 1;
+    for i in 0..39 {
+        response += (trits[i] as i64 *factor) ;
+        factor *=3;
+    }
+    response as u64
+}
+pub fn i64_from_trits(trits :Vec<i8>)->i64 {
+    let mut response :i64=0;
+    let mut factor :i64 = 1;
+    for i in 0..39 {
+        response += (trits[i] as i64 *factor);
+        factor *=3;
+    }
+    response
+}
+
+pub fn u64_from_bytes(bytes :&Vec<i8>, trits_count :usize, byte_idx :usize, trit_offset :u8)->u64{
+    u64_from_trits(trits_from_bytes(bytes,trits_count,byte_idx,trit_offset))
+}
+pub fn i64_from_bytes(bytes :&Vec<i8>, trits_count :usize, byte_idx :usize, trit_offset :u8)->i64{
+    i64_from_trits(trits_from_bytes(bytes,trits_count,byte_idx,trit_offset))
+}
 pub fn i64_to_trits(value :i64) -> [i8;40]{
     let mut v = value;
     let mut r = [0_i8;40];
@@ -292,8 +317,64 @@ pub fn tuple_2_char((t0,t1,t2) :(i8,i8,i8)) -> char {
     }
 }
 
+pub fn trits_from_bytes(bytes :&Vec<i8>, trits_count :usize, byte_idx :usize, trit_offset :u8) ->Vec<i8>{
+    let mut response:Vec<i8> = Vec::with_capacity(trits_count);
+    let mut trit_index = 0;
+    let mut byte_index = byte_idx;
+    let mut offset = trit_offset;
+    while trit_index<trits_count {
+        let [t0,t1,t2,t3,t4] = i8_to_trits(bytes[byte_index]);
+        if offset==0 && (trit_index+5 <= trits_count) {
+            response.extend_from_slice(&[t0,t1,t2,t3,t4]);
+            byte_index +=1;
+            trit_index +=5;
+        }else{
+            if offset>0 {
+                if offset==1 {
+                    response.extend_from_slice(&[t1,t2,t3,t4]);
+                    byte_index +=1;
+                    trit_index +=4;
+                }
+                if offset==2 {
+                    response.extend_from_slice(&[t2,t3,t4]);
+                    byte_index +=1;
+                    trit_index +=3;
+                }
+                if offset==3 {
+                    response.extend_from_slice(&[t3,t4]);
+                    byte_index +=1;
+                    trit_index +=2;
+                }
+                if offset==4 {
+                    response.extend_from_slice(&[t4]);
+                    byte_index +=1;
+                    trit_index +=1;
+                }
+                offset=0;
+            }else{
+                match trits_count-trit_index {
+                    4 => {
+                        response.extend_from_slice(&[t0,t1,t2,t3]);
+                    }
+                    3 => {
+                        response.extend_from_slice(&[t0,t1,t2]);
+                    }
+                    2 => {
+                        response.extend_from_slice(&[t0,t1]);
+                    }
+                    1 => {
+                        response.extend_from_slice(&[t0]);
+                    }
+                    _ => panic!("euh... trits_count-trit_index={}",trits_count-trit_index)
+                }
+                trit_index = trits_count;
+            }
+        }
+    }
+    response
+}
 
-pub fn to_trits(bytes :&Vec<i8>, tryte_count :usize) -> Vec<i8> {
+pub fn bytes_to_trits(bytes :&Vec<i8>, tryte_count :usize) -> Vec<i8> {
     let mut trits_count = tryte_count*3;
     let mut response:Vec<i8> = Vec::with_capacity(trits_count);
     for byte_index in 0..bytes.len() {
@@ -358,7 +439,7 @@ fn trit_to_i8((t0,t1,t2,t3,t4) :(i8,i8,i8,i8,i8))->i8{
     t0+t1*3+t2*9+t3*27+t4*81
 }
 
-pub fn trytes_to_trites(trytes :String) -> Vec<i8> {
+pub fn trytes_to_trits(trytes :String) -> Vec<i8> {
     let sz = 3*trytes.len();
     let mut integers :Vec<i8> = Vec::with_capacity(sz);
     for c in trytes.chars() {
@@ -434,7 +515,7 @@ mod tests {
 
     #[test]
     fn to_trits_test() {
-        assert_eq!(to_trits(&vec![1],1),vec![1,0,0]);
+        assert_eq!(bytes_to_trits(&vec![1], 1), vec![1, 0, 0]);
     }
 
         #[test]
@@ -473,7 +554,7 @@ mod tests {
         for i in 0..40 {
             assert_eq!(c[i],v[i]);
         }
-        let true_trits = trytes_to_trites("YGYQIVD".to_string());
+        let true_trits = trytes_to_trits("YGYQIVD".to_string());
         for i in 0..21 {
             assert_eq!(true_trits[i],v[i]);
         }
