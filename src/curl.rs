@@ -26,13 +26,6 @@ impl Sponge for Curl {
     }
 
     fn absorb(&mut self, trites_to_calculate :Vec<i8>, mut offset: usize,mut length :usize) {
-        /*
-        do {
-            System.arraycopy(trits, offset, state, 0, length < HASH_LENGTH ? length : HASH_LENGTH);
-            transform();
-            offset += HASH_LENGTH;
-        } while ((length -= HASH_LENGTH) > 0);
-        */
         while {
             let l = if length < HASH_LENGTH {length} else {HASH_LENGTH};
             self.state[0..l].copy_from_slice(&trites_to_calculate[offset..offset+l]);
@@ -78,22 +71,6 @@ impl Curl {
     }
 
     fn transform(&mut self) {
-        /*
-        int scratchpadIndex = 0;
-        int prev_scratchpadIndex = 0;
-        for (int round = 0; round < numberOfRounds; round++) {
-            System.arraycopy(state, 0, scratchpad, 0, STATE_LENGTH);
-            for (int stateIndex = 0; stateIndex < STATE_LENGTH; stateIndex++) {
-                prev_scratchpadIndex = scratchpadIndex;
-                if (scratchpadIndex < 365) {
-                    scratchpadIndex += 364;
-                } else {
-                    scratchpadIndex += -365;
-                }
-                state[stateIndex] = TRUTH_TABLE[scratchpad[prev_scratchpadIndex] + (scratchpad[scratchpadIndex] << 2) + 5];
-            }
-        }
-        */
         let mut scratchpad_index = 0;
         let mut prev_scratchpad_index = 0;
         let mut scratchpad :[i8;STATE_LENGTH] = [0;STATE_LENGTH];

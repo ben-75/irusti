@@ -66,14 +66,14 @@ impl Tangle {
                 panic!("Aborting. Reason: cannot open database");
             }
         };
-        db.put(b"my key", b"my value").unwrap();
-        match db.get(b"my key") {
-            Ok(Some(value)) => println!("retrieved value {}", value.to_utf8().unwrap()),
-            Ok(None) => println!("value not found"),
-            Err(e) => println!("operational problem encountered: {}", e),
-        }
-
-        db.delete(b"my key").unwrap();
+//        db.put(b"my key", b"my value").unwrap();
+//        match db.get(b"my key") {
+//            Ok(Some(value)) => println!("retrieved value {}", value.to_utf8().unwrap()),
+//            Ok(None) => println!("value not found"),
+//            Err(e) => println!("operational problem encountered: {}", e),
+//        }
+//
+//        db.delete(b"my key").unwrap();
 
         Tangle{
             cf_default: DB::cf_handle(&db,"default").unwrap(),
