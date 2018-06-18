@@ -12,6 +12,7 @@ struct TransactionValidator {
 }
 
 impl TransactionValidator {
+
     pub fn has_invalid_timestamp(&self, ts: u64, attachment_ts: u64,  h: TxHash) -> bool {
         attachment_ts == 0 && (ts < self.snapshot_ts && !h.is_null_hash() || ts > now_in_ms() + MAX_TIMESTAMP_FUTURE_MS) ||
         attachment_ts != 0 && (attachment_ts < self.snapshot_ts || (attachment_ts > (now_in_ms() + MAX_TIMESTAMP_FUTURE_MS)))

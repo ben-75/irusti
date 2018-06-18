@@ -8,6 +8,7 @@ use converter::u64_to_trits;
 use converter::tuple_2_char;
 use converter::u64_from_bytes;
 use converter::i64_from_bytes;
+use converter::get_trit;
 use txhash::TxHash;
 
 const SIZE :usize = 1604;
@@ -291,8 +292,8 @@ impl Transaction {
         i64_from_bytes(&self.arr.to_vec(),40,VALUE_BYTE_OFFSET,VALUE_BIT_OFFSET)
     }
     pub fn last_address_trit_is_zero(&self) -> bool {
-        //TODO : implement this
-        false
+        println!("byte_index={:?}, bit_offset={:?}",ADDRESS_BYTE_OFFSET+ADDRESS_BYTE_SIZE+((ADDRESS_BIT_OFFSET+SIG_MSG_BIT_OFFSET)/5) as usize,((ADDRESS_BIT_OFFSET+ADDRESS_BYTE_OVERFLOW-1)%5));
+        get_trit(&self.arr.to_vec(),ADDRESS_BYTE_OFFSET+ADDRESS_BYTE_SIZE+((ADDRESS_BIT_OFFSET+SIG_MSG_BIT_OFFSET)/5) as usize,((ADDRESS_BIT_OFFSET+ADDRESS_BYTE_OVERFLOW-1)%5))==0
     }
     pub fn is_value_valid(&self) -> bool {
         let first_mandatory_zero_trit_index = VALUE_BYTE_OFFSET*5+VALUE_BIT_OFFSET as usize+VALUE_USABLE_TRINARY_SIZE;
@@ -665,5 +666,81 @@ mod tests {
                                   Some(1482522289), None, None,Some("TXEFLKNPJRBYZPORHZU9CEMFIFVVQBUSTDGSJCZMBTZCDTTJVUFPTCCVHHORPMGCURKTH9VGJIXUQJVHK"),None, None, None, None,
                                   None, None,None).unwrap();
         assert_eq!(tx.is_value_valid(),false);
+    }
+
+    #[test]
+    fn test_last_address_trit_is_not_zero(){
+        let tx = Transaction::new(None,Some("A9RGRKVGWMWMKOLVMDFWJUHNUNYWZTJADGGPZGXNLERLXYWJE9WQHWWBMCPZMVVMJUMWWBLZLNMLDCGDJ".as_ref()), Some(0),
+                                  Some("MOBSOLETE"),
+                                  Some(1482522289), None, None,Some("TXEFLKNPJRBYZPORHZU9CEMFIFVVQBUSTDGSJCZMBTZCDTTJVUFPTCCVHHORPMGCURKTH9VGJIXUQJVHK"),None, None, None, None,
+                                  None, None,None).unwrap();
+        assert_eq!(tx.last_address_trit_is_zero(),false);
+        let tx = Transaction::new(None,Some("A9RGRKVGWMWMKOLVMDFWJUHNUNYWZTJADGGPZGXNLERLXYWJE9WQHWWBMCPZMVVMJUMWWBLZLNMLDCGDK".as_ref()), Some(0),
+                                  Some("MOBSOLETE"),
+                                  Some(1482522289), None, None,Some("TXEFLKNPJRBYZPORHZU9CEMFIFVVQBUSTDGSJCZMBTZCDTTJVUFPTCCVHHORPMGCURKTH9VGJIXUQJVHK"),None, None, None, None,
+                                  None, None,None).unwrap();
+        assert_eq!(tx.last_address_trit_is_zero(),false);
+        let tx = Transaction::new(None,Some("A9RGRKVGWMWMKOLVMDFWJUHNUNYWZTJADGGPZGXNLERLXYWJE9WQHWWBMCPZMVVMJUMWWBLZLNMLDCGDM".as_ref()), Some(0),
+                                  Some("MOBSOLETE"),
+                                  Some(1482522289), None, None,Some("TXEFLKNPJRBYZPORHZU9CEMFIFVVQBUSTDGSJCZMBTZCDTTJVUFPTCCVHHORPMGCURKTH9VGJIXUQJVHK"),None, None, None, None,
+                                  None, None,None).unwrap();
+        assert_eq!(tx.last_address_trit_is_zero(),false);
+        let tx = Transaction::new(None,Some("A9RGRKVGWMWMKOLVMDFWJUHNUNYWZTJADGGPZGXNLERLXYWJE9WQHWWBMCPZMVVMJUMWWBLZLNMLDC99N".as_ref()), Some(0),
+                                  Some("MOBSOLETE"),
+                                  Some(1482522289), None, None,Some("TXEFLKNPJRBYZPORHZU9CEMFIFVVQBUSTDGSJCZMBTZCDTTJVUFPTCCVHHORPMGCURKTH9VGJIXUQJVHK"),None, None, None, None,
+                                  None, None,None).unwrap();
+        assert_eq!(tx.last_address_trit_is_zero(),false);
+    }
+
+    #[test]
+    fn test_last_address_trit_is_zero(){
+        let tx = Transaction::new(None,Some("A9RGRKVGWMWMKOLVMDFWJUHNUNYWZTJADGGPZGXNLERLXYWJE9WQHWWBMCPZMVVMJUMWWBLZLNMLDCGD9".as_ref()), Some(SUPPLY),
+                                  Some("MOBSOLETE"),
+                                  Some(1482522289), None, None,Some("TXEFLKNPJRBYZPORHZU9CEMFIFVVQBUSTDGSJCZMBTZCDTTJVUFPTCCVHHORPMGCURKTH9VGJIXUQJVHK"),None, None, None, None,
+                                  None, None,None).unwrap();
+        assert_eq!(tx.last_address_trit_is_zero(),true);
+
+        let tx = Transaction::new(None,Some("A9RGRKVGWMWMKOLVMDFWJUHNUNYWZTJADGGPZGXNLERLXYWJE9WQHWWBMCPZMVVMJUMWWBLZLNMLDCGDA".as_ref()), Some(SUPPLY),
+                                  Some("MOBSOLETE"),
+                                  Some(1482522289), None, None,Some("TXEFLKNPJRBYZPORHZU9CEMFIFVVQBUSTDGSJCZMBTZCDTTJVUFPTCCVHHORPMGCURKTH9VGJIXUQJVHK"),None, None, None, None,
+                                  None, None,None).unwrap();
+        assert_eq!(tx.last_address_trit_is_zero(),true);
+
+        let tx = Transaction::new(None,Some("A9RGRKVGWMWMKOLVMDFWJUHNUNYWZTJADGGPZGXNLERLXYWJE9WQHWWBMCPZMVVMJUMWWBLZLNMLDCGDB".as_ref()), Some(SUPPLY),
+                                  Some("MOBSOLETE"),
+                                  Some(1482522289), None, None,Some("TXEFLKNPJRBYZPORHZU9CEMFIFVVQBUSTDGSJCZMBTZCDTTJVUFPTCCVHHORPMGCURKTH9VGJIXUQJVHK"),None, None, None, None,
+                                  None, None,None).unwrap();
+        assert_eq!(tx.last_address_trit_is_zero(),true);
+
+        let tx = Transaction::new(None,Some("A9RGRKVGWMWMKOLVMDFWJUHNUNYWZTJADGGPZGXNLERLXYWJE9WQHWWBMCPZMVVMJUMWWBLZLNMLDCGDC".as_ref()), Some(SUPPLY),
+                                  Some("MOBSOLETE"),
+                                  Some(1482522289), None, None,Some("TXEFLKNPJRBYZPORHZU9CEMFIFVVQBUSTDGSJCZMBTZCDTTJVUFPTCCVHHORPMGCURKTH9VGJIXUQJVHK"),None, None, None, None,
+                                  None, None,None).unwrap();
+        assert_eq!(tx.last_address_trit_is_zero(),true);
+        let tx = Transaction::new(None,Some("A9RGRKVGWMWMKOLVMDFWJUHNUNYWZTJADGGPZGXNLERLXYWJE9WQHWWBMCPZMVVMJUMWWBLZLNMLDCGDD".as_ref()), Some(SUPPLY),
+                                  Some("MOBSOLETE"),
+                                  Some(1482522289), None, None,Some("TXEFLKNPJRBYZPORHZU9CEMFIFVVQBUSTDGSJCZMBTZCDTTJVUFPTCCVHHORPMGCURKTH9VGJIXUQJVHK"),None, None, None, None,
+                                  None, None,None).unwrap();
+        assert_eq!(tx.last_address_trit_is_zero(),true);
+        let tx = Transaction::new(None,Some("A9RGRKVGWMWMKOLVMDFWJUHNUNYWZTJADGGPZGXNLERLXYWJE9WQHWWBMCPZMVVMJUMWWBLZLNMLDCGDW".as_ref()), Some(SUPPLY),
+                                  Some("MOBSOLETE"),
+                                  Some(1482522289), None, None,Some("TXEFLKNPJRBYZPORHZU9CEMFIFVVQBUSTDGSJCZMBTZCDTTJVUFPTCCVHHORPMGCURKTH9VGJIXUQJVHK"),None, None, None, None,
+                                  None, None,None).unwrap();
+        assert_eq!(tx.last_address_trit_is_zero(),true);
+        let tx = Transaction::new(None,Some("A9RGRKVGWMWMKOLVMDFWJUHNUNYWZTJADGGPZGXNLERLXYWJE9WQHWWBMCPZMVVMJUMWWBLZLNMLDCGDX".as_ref()), Some(SUPPLY),
+                                  Some("MOBSOLETE"),
+                                  Some(1482522289), None, None,Some("TXEFLKNPJRBYZPORHZU9CEMFIFVVQBUSTDGSJCZMBTZCDTTJVUFPTCCVHHORPMGCURKTH9VGJIXUQJVHK"),None, None, None, None,
+                                  None, None,None).unwrap();
+        assert_eq!(tx.last_address_trit_is_zero(),true);
+        let tx = Transaction::new(None,Some("A9RGRKVGWMWMKOLVMDFWJUHNUNYWZTJADGGPZGXNLERLXYWJE9WQHWWBMCPZMVVMJUMWWBLZLNMLDCGDY".as_ref()), Some(SUPPLY),
+                                  Some("MOBSOLETE"),
+                                  Some(1482522289), None, None,Some("TXEFLKNPJRBYZPORHZU9CEMFIFVVQBUSTDGSJCZMBTZCDTTJVUFPTCCVHHORPMGCURKTH9VGJIXUQJVHK"),None, None, None, None,
+                                  None, None,None).unwrap();
+        assert_eq!(tx.last_address_trit_is_zero(),true);
+        let tx = Transaction::new(None,Some("A9RGRKVGWMWMKOLVMDFWJUHNUNYWZTJADGGPZGXNLERLXYWJE9WQHWWBMCPZMVVMJUMWWBLZLNMLDCGDZ".as_ref()), Some(SUPPLY),
+                                  Some("MOBSOLETE"),
+                                  Some(1482522289), None, None,Some("TXEFLKNPJRBYZPORHZU9CEMFIFVVQBUSTDGSJCZMBTZCDTTJVUFPTCCVHHORPMGCURKTH9VGJIXUQJVHK"),None, None, None, None,
+                                  None, None,None).unwrap();
+        assert_eq!(tx.last_address_trit_is_zero(),true);
     }
 }

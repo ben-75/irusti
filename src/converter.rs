@@ -243,6 +243,18 @@ pub fn internal_trailing_zeros(bytes :&Vec<i8>, index :usize) ->i32 {
     }
 }
 
+pub fn get_trit(bytes :&Vec<i8>,byte_index :usize, bit_offset :u8)->i8 {
+    let [t0,t1,t2,t3,t4] = i8_to_trits(bytes[byte_index]);
+    match bit_offset {
+        0 => t0,
+        1 => t1,
+        2 => t2,
+        3 => t3,
+        4 => t4,
+        _ => panic!("Invalid bit_offset"),
+    }
+}
+
 pub fn to_string(bytes :&Vec<i8>, mut tryte_count :i32) -> String {
     let mut response:String = "".to_string();
     let mut remaining_count = 0;
