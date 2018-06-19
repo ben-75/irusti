@@ -28,7 +28,7 @@ impl TransactionValidator {
     pub fn run_validation(&self, tx : Transaction) ->Result<(),&'static str> {
         let h= match TxHash::compute_from_bytes(tx.bytes(), TRINARY_SIZE, SpongeMode::CurlP81)  {
             Err(()) => return Err(ERR_INVALID_TRANSACTION_TRITS),
-            Ok(x) => {println!("hash={:?}",x);x},
+            Ok(x) => x,
         };
         if self.has_invalid_timestamp(tx.timestamp(),tx.attachment_timestamp(),h) {
             return Err(ERR_INVALID_TIMESTAMP);
@@ -67,7 +67,7 @@ mod tests {
 
     #[test]
     fn has_invalid_timestamp_test() {
-        let mut transaction_validator = TransactionValidator{snapshot_ts: now_in_ms()-1000, mwm: 15};
+        let transaction_validator = TransactionValidator{snapshot_ts: now_in_ms()-1000, mwm: 15};
         let h1 = TxHash::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9");
         assert_eq!(transaction_validator.has_invalid_timestamp(now_in_ms()-2000,0,h1),true);
         assert_eq!(transaction_validator.has_invalid_timestamp(now_in_ms()-500,0,h1),false);
@@ -77,7 +77,7 @@ mod tests {
 
     #[test]
     fn run_validation_with_invalid_timestamp(){
-        let mut transaction_validator = TransactionValidator{snapshot_ts: now_in_ms()-1000, mwm: 15};
+        let transaction_validator = TransactionValidator{snapshot_ts: now_in_ms()-1000, mwm: 15};
         let tx = Transaction::new(None,
                                   Some("A9RGRKVGWMWMKOLVMDFWJUHNUNYWZTJADGGPZGXNLERLXYWJE9WQHWWBMCPZMVVMJUMWWBLZLNMLDCGDJ".as_ref()),
                                   None,
@@ -94,7 +94,7 @@ mod tests {
 
     #[test]
     fn run_validation_with_invalid_value(){
-        let mut transaction_validator = TransactionValidator{snapshot_ts: now_in_ms()-1000, mwm: 15};
+        let transaction_validator = TransactionValidator{snapshot_ts: now_in_ms()-1000, mwm: 15};
         let tx = Transaction::new(None,
                                   Some("A9RGRKVGWMWMKOLVMDFWJUHNUNYWZTJADGGPZGXNLERLXYWJE9WQHWWBMCPZMVVMJUMWWBLZLNMLDCGDJ".as_ref()),
                                   Some(SUPPLY+1),
@@ -111,7 +111,7 @@ mod tests {
 
     #[test]
     fn run_validation_with_invalid_hash(){
-        let mut transaction_validator = TransactionValidator{snapshot_ts: 1482522289-1000, mwm: 15};
+        let transaction_validator = TransactionValidator{snapshot_ts: 1482522289-1000, mwm: 15};
         let tx = Transaction::new(None,
                                   Some("A9RGRKVGWMWMKOLVMDFWJUHNUNYWZTJADGGPZGXNLERLXYWJE9WQHWWBMCPZMVVMJUMWWBLZLNMLDCGDJ".as_ref()),
                                   Some(1000),
@@ -128,7 +128,7 @@ mod tests {
 
     #[test]
     fn run_validation_with_valid_hash(){
-        let mut transaction_validator = TransactionValidator{snapshot_ts: 1482522286-1000, mwm: 1};
+        let transaction_validator = TransactionValidator{snapshot_ts: 1482522286-1000, mwm: 1};
         let tx = Transaction::new(None,
                                   Some("A9RGRKVGWMWMKOLVMDFWJUHNUNYWZTJADGGPZGXNLERLXYWJE9WQHWWBMCPZMVVMJUMWWBLZLNMLDCGD9".as_ref()),
                                   Some(1000),
@@ -144,7 +144,7 @@ mod tests {
 
     #[test]
     fn run_validation_with_invalid_address(){
-        let mut transaction_validator = TransactionValidator{snapshot_ts: 1482522286-1000, mwm: 2};
+        let transaction_validator = TransactionValidator{snapshot_ts: 1482522286-1000, mwm: 2};
         let tx = Transaction::new(None,
                                   Some("A9RGRKVGWMWMKOLVMDFWJUHNUNYWZTJADGGPZGXNLERLXYWJE9WQHWWBMCPZMVVMJUMWWBLZLNMLDCGDM".as_ref()),
                                   Some(1000),

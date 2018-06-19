@@ -107,8 +107,7 @@ impl<'a,'b> TransactionRequester<'a,'b> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rand::{thread_rng, Rng};
-    use std::fs;
+    use rand::{Rng};
 
     fn setup<'a,'b>((tg,mq) :(&'a Tangle,&'b MessageQ)) -> TransactionRequester<'a,'b>{
         let test_max_size = 100;
@@ -148,7 +147,7 @@ mod tests {
     fn size_test() {
         {
             let tg_mq = make_tangle_mq("dbtests/unittest1");
-            let mut transaction_requester = setup((&tg_mq.0, &tg_mq.1));
+            let transaction_requester = setup((&tg_mq.0, &tg_mq.1));
             assert_eq!(transaction_requester.size(),0);
             assert_eq!(transaction_requester.transaction_to_request_is_full(),false);
             assert_eq!(transaction_requester.get_transactions_to_request().len(),0);
@@ -243,7 +242,7 @@ mod tests {
     fn capacity_limited(){
         let tg_mq = make_tangle_mq("dbtests/unittest8");
         let mut transaction_requester = setup((&tg_mq.0, &tg_mq.1));
-        for i in 0..(2*transaction_requester.max_size) {
+        for _i in 0..(2*transaction_requester.max_size) {
             transaction_requester.request_transaction(TxHash::new(get_random_transaction_hash().as_ref()), false);
         }
         assert_eq!(transaction_requester.size(),transaction_requester.max_size);
@@ -253,7 +252,7 @@ mod tests {
     fn milestone_capacity_not_limited(){
         let tg_mq = make_tangle_mq("dbtests/unittest9");
         let mut transaction_requester = setup((&tg_mq.0, &tg_mq.1));
-        for i in 0..(2*transaction_requester.max_size) {
+        for _i in 0..(2*transaction_requester.max_size) {
             transaction_requester.request_transaction(TxHash::new(get_random_transaction_hash().as_ref()), true);
         }
         assert_eq!(transaction_requester.size(),2*transaction_requester.max_size);
@@ -271,7 +270,6 @@ mod tests {
 
     fn get_random_transaction_hash() -> String {
         let mut rng = rand::thread_rng();
-        let idx = rng.gen_range(0, 27);
         let mut random_h :String = "".to_string();
         for _ in 0..81 {
             let idx :u8 = rng.gen_range(0, 27);
@@ -285,7 +283,6 @@ mod tests {
 
     fn get_random_transaction_trytes() -> String {
         let mut rng = rand::thread_rng();
-        let idx = rng.gen_range(0, 27);
         let mut random_tx :String = "".to_string();
         for _ in 0..2673 {
             let idx :u8 = rng.gen_range(0, 27);

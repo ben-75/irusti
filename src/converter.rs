@@ -113,7 +113,7 @@ pub fn u64_from_trits(trits :Vec<i8>)->u64 {
     let mut response :i64=0;
     let mut factor :i64 = 1;
     for i in 0..39 {
-        response += (trits[i] as i64 *factor) ;
+        response += trits[i] as i64 *factor ;
         factor *=3;
     }
     response as u64
@@ -122,7 +122,7 @@ pub fn i64_from_trits(trits :Vec<i8>)->i64 {
     let mut response :i64=0;
     let mut factor :i64 = 1;
     for i in 0..39 {
-        response += (trits[i] as i64 *factor);
+        response += trits[i] as i64 *factor;
         factor *=3;
     }
     response

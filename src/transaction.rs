@@ -1,5 +1,3 @@
-use converter::to_bytes;
-use std::hash::{Hash, self};
 use std::fmt;
 use std::str::FromStr;
 use converter::i8_to_trits;
@@ -9,7 +7,6 @@ use converter::tuple_2_char;
 use converter::u64_from_bytes;
 use converter::i64_from_bytes;
 use converter::get_trit;
-use txhash::TxHash;
 
 const SIZE :usize = 1604;
 const TAG_SIZE_IN_BYTES :usize = 17; // = ceil(81 TRITS / 5 TRITS_PER_BYTE)
@@ -145,7 +142,7 @@ impl Transaction {
             None => (),
             Some(x) => {
                 if x.len()>2187 {return Err("Message/Signature fragment is too long".to_string())}
-                else { arr = match (register_trytes(x,0,0,&mut arr)) {
+                else { arr = match register_trytes(x, 0, 0, &mut arr) {
                                 Err(_) => return Err("Message/Signature fragment contains invalid tryte".to_string()),
                                 Ok(x) => x,
                             }
@@ -295,13 +292,13 @@ impl Transaction {
         get_trit(&self.arr.to_vec(),ADDRESS_BYTE_OFFSET+ADDRESS_BYTE_SIZE+((ADDRESS_BIT_OFFSET+SIG_MSG_BIT_OFFSET)/5) as usize,((ADDRESS_BIT_OFFSET+ADDRESS_BYTE_OVERFLOW-1)%5))==0
     }
     pub fn is_value_valid(&self) -> bool {
-        let first_mandatory_zero_trit_index = VALUE_BYTE_OFFSET*5+VALUE_BIT_OFFSET as usize+VALUE_USABLE_TRINARY_SIZE;
-        let last_mandatory_zero_trit_index = VALUE_BYTE_OFFSET*5+VALUE_BIT_OFFSET as usize+VALUE_TRINARY_SIZE;
-        let byte_index = first_mandatory_zero_trit_index/5;
-        let bit_offset = first_mandatory_zero_trit_index%5;
-        let last_bit_offset = last_mandatory_zero_trit_index%5;
-        let last_byte_index = 1377;//(VALUE_TRINARY_OFFSET + VALUE_TRINARY_SIZE)/5;
-        for i in (1368_usize..1377_usize) {
+//        let first_mandatory_zero_trit_index = VALUE_BYTE_OFFSET*5+VALUE_BIT_OFFSET as usize+VALUE_USABLE_TRINARY_SIZE;
+//        let last_mandatory_zero_trit_index = VALUE_BYTE_OFFSET*5+VALUE_BIT_OFFSET as usize+VALUE_TRINARY_SIZE;
+//        let byte_index = first_mandatory_zero_trit_index/5;
+//        let bit_offset = first_mandatory_zero_trit_index%5;
+//        let last_bit_offset = last_mandatory_zero_trit_index%5;
+//        let last_byte_index = 1377;//(VALUE_TRINARY_OFFSET + VALUE_TRINARY_SIZE)/5;
+        for i in 1368_usize..1377_usize {
             if self.arr[i]!=0 {return false;}
         }
         self.arr[1367]<5 && self.arr[1367]>-5
