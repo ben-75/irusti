@@ -20,7 +20,6 @@ pub mod configuration;
 pub mod iota;
 pub mod tangle;
 pub mod txhash;
-pub mod curl;
 pub mod zmq_wrapper;
 pub mod tips_view_model;
 pub mod transaction_requester;
@@ -28,9 +27,6 @@ pub mod converter;
 pub mod transaction_validator;
 pub mod transaction;
 pub mod sponge;
-pub mod kerl;
-pub mod keccak;
-pub mod kerl_converters;
 
 const APP_NAME : &'static str = "IRustI";
 const VERSION : &'static str = "1.4.2.4";

@@ -1,8 +1,8 @@
 use std::str::FromStr;
-use curl::SpongeMode;
-use curl::Curl;
-use curl::Sponge;
-use curl::HASH_LENGTH;
+use sponge::curl::SpongeMode;
+use sponge::curl::Curl;
+use sponge::curl::Sponge;
+use sponge::curl::HASH_LENGTH;
 use std::hash::{Hash, self};
 use std::fmt;
 use converter::i8_to_trits;

@@ -5,7 +5,7 @@ const MAX_TIMESTAMP_FUTURE_SEC :u64 = 2*60*60;
 const MAX_TIMESTAMP_FUTURE_MS  :u64 = MAX_TIMESTAMP_FUTURE_SEC*1000;
 use transaction::TRINARY_SIZE;
 use transaction::SUPPLY;
-use curl::SpongeMode;
+use sponge::curl::SpongeMode;
 
 const ERR_INVALID_TRANSACTION_TRITS : &'static str = "Invalid transaction trits";
 const ERR_INVALID_TIMESTAMP : &'static str = "Invalid timestamp";
