@@ -1,6 +1,6 @@
 pub trait Sponge {
     fn reset(&mut self);
-    fn absorb(&mut self, trites_to_calculate :Vec<i8>, offset :usize, length :usize);
+    fn absorb(&mut self, trites_to_calculate :Vec<i8>);
     fn squeeze(&mut self, out :&mut [i8;243]);
 }
 
@@ -27,19 +27,18 @@ impl Sponge for Curl {
 
     fn absorb(&mut self, trites_to_calculate :Vec<i8>) {
         let mut offset :usize =0;
-        let mut length :usize =trites_to_calculate.len()*3;
+        let mut length :usize =trites_to_calculate.len();
         while {
             let l = if length < HASH_LENGTH {length} else {HASH_LENGTH};
             self.state[0..l].copy_from_slice(&trites_to_calculate[offset..offset+l]);
             self.transform();
-            offset += HASH_LENGTH;
-
-            length -= HASH_LENGTH;
+            offset += l;
+            length -= l;
             length > 0
         }{}
     }
 
-    fn squeeze(&mut self, &mut  out: [i8;HASH_LENGTH]){
+    fn squeeze(&mut self, out: &mut [i8;HASH_LENGTH]){
         let mut offset :usize = 0;
         let mut length :usize = HASH_LENGTH;
         while {
@@ -47,12 +46,11 @@ impl Sponge for Curl {
 
             out[offset..offset+l].copy_from_slice(&self.state[0..l]);
             self.transform();
-            offset += HASH_LENGTH;
+            offset += l;
 
-            length -= HASH_LENGTH;
+            length -= l;
             length > 0
         }{}
-        out
     }
 
 }
@@ -111,7 +109,7 @@ mod tests {
             let mut curl = Curl::new_curl_p81();
             curl.absorb(in_trits);
         let mut out :[i8;HASH_LENGTH] = [0;HASH_LENGTH];
-            hash_trits = curl.squeeze(&mut out);
+            curl.squeeze(&mut out);
 //            let out_trytes = converter::to_string(hash_trits,81);
 //            assert_eq!(HASH, TxHash{arr: hash_trits}.to_string());
         println!("{:?}", now.elapsed());

@@ -3,11 +3,10 @@
 //! use this until ApInt or ramp are good enough, then use those
 //! instead.
 
-//use super::traits::{ICurl, HASH_LENGTH};
 use sponge::Sponge;
 use keccak::Keccak;
 use kerl_converters::*;
-
+use converter::trytes_to_trits;
 const BIT_HASH_LENGTH: usize = 384;
 const BYTE_HASH_LENGTH: usize = BIT_HASH_LENGTH / 8;
 
@@ -305,30 +304,27 @@ mod tests {
             "GYOMKVTSNHVJNCNFBBAH9AAMXLPLLLROQY99QN9DLSJUHDPBLCFFAIQXZA9BKMBJCYSFHFPXAHDWZFEIZ",
         );
         let mut kerl = Kerl::default();
-        kerl.absorb(trits, 0, trits.len());
-        kerl.squeeze(trits, 0,  trits.len());
+        kerl.absorb( trits.as_mut());
+        let mut out = [0; 243];
+        kerl.squeeze(&mut out);
         assert_eq!(
-            trits_to_string(&trits).unwrap(),
+            trits_to_string(&out).unwrap(),
             "OXJCNFHUNAHWDLKKPELTBFUCVW9KLXKOGWERKTJXQMXTKFKNWNNXYD9DMJJABSEIONOSJTTEVKVDQEWTW"
         );
     }
 
     #[test]
     fn kerl_multi_squeeze_multi_absorb() {
-        let mut trits: Vec<i8> = "G9JYBOMPUXHYHKSNRNMMSSZCSHOFYOYNZRSZMAAYWDYEIMVVOGKPJBVBM9TD\
+        let mut trits = trytes_to_trits("G9JYBOMPUXHYHKSNRNMMSSZCSHOFYOYNZRSZMAAYWDYEIMVVOGKPJBVBM9TD\
 PULSFUNMTVXRKFIDOHUXXVYDLFSZYZTWQYTE9SPYYWYTXJYQ9IFGYOLZXWZBKWZN9QOOTBQMWMUBLEWUEEASRHRTNIQW\
-JQNDWRYLCA"
-            .chars()
-            .flat_map(char_to_trits)
-            .cloned()
-.collect();
+JQNDWRYLCA".to_string());
 
         let mut kerl = Kerl::default();
-        kerl.absorb(trits,0,trits.len());
+        kerl.absorb(trits.as_mut());
 
-        let mut out = vec![0; 486];
+        let mut out = [0; 486];
 
-        kerl.squeeze(out,0,trits.len());
+        kerl.squeeze(&mut out);
         assert_eq!(
             trits_to_string(&out).unwrap(),
             "LUCKQVACOGBFYSPPVSSOXJEKNSQQRQKPZC9NXFSMQNRQCGGUL9OHVVKBDSKEQEBKXRNUJSRXYVHJTXBPD\
@@ -345,10 +341,10 @@ JQNDWRYLCA"
                 .cloned()
                 .collect();
         let mut kerl = Kerl::default();
-        kerl.absorb(trits, 0, trits.len());
+        kerl.absorb(trits.as_mut());
 
-        let mut out = vec![0; 486];
-        kerl.squeeze(out, 0, out.len());
+        let mut out = [0; 486];
+        kerl.squeeze(&mut out);
         assert_eq!(
             trits_to_string(&out).unwrap(),
             "G9JYBOMPUXHYHKSNRNMMSSZCSHOFYOYNZRSZMAAYWDYEIMVVOGKPJBVBM9TDPULSFUNMTVXRKFIDOHUXX\

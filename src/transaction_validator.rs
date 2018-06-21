@@ -30,6 +30,8 @@ impl TransactionValidator {
             Err(()) => return Err(ERR_INVALID_TRANSACTION_TRITS),
             Ok(x) => x,
         };
+
+        println!("ts={} attch={}",tx.timestamp(),tx.attachment_timestamp());
         if self.has_invalid_timestamp(tx.timestamp(),tx.attachment_timestamp(),h) {
             return Err(ERR_INVALID_TIMESTAMP);
         }
@@ -82,7 +84,7 @@ mod tests {
                                   Some("A9RGRKVGWMWMKOLVMDFWJUHNUNYWZTJADGGPZGXNLERLXYWJE9WQHWWBMCPZMVVMJUMWWBLZLNMLDCGDJ".as_ref()),
                                   None,
                                   None,
-                                  Some(now_in_ms()+500+MAX_TIMESTAMP_FUTURE_MS), None, None,
+                                  Some(now_in_ms()+5000+MAX_TIMESTAMP_FUTURE_MS), None, None,
                                   Some("TXEFLKNPJRBYZPORHZU9CEMFIFVVQBUSTDGSJCZMBTZCDTTJVUFPTCCVHHORPMGCURKTH9VGJIXUQJVHK"),None, None, None, None,
                                   None, None,None).unwrap();
         match transaction_validator.run_validation(tx){

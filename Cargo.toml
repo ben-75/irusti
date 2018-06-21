@@ -13,3 +13,4 @@ num_cpus = "1.0"
 zmq = "0.8"
 linked_hash_set = { git = "https://github.com/alexheretic/linked-hash-set" }
 rand="0.5"
+lazy_static = "1.0"
