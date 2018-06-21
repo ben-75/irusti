@@ -4,6 +4,8 @@ extern crate log;
 extern crate log4rs;
 extern crate linked_hash_set;
 extern crate rand;
+#[macro_use]
+extern crate lazy_static;
 
 use clap::{App, Arg};
 use configuration::Configuration;
@@ -25,6 +27,10 @@ pub mod transaction_requester;
 pub mod converter;
 pub mod transaction_validator;
 pub mod transaction;
+pub mod sponge;
+pub mod kerl;
+pub mod keccak;
+pub mod kerl_converters;
 
 const APP_NAME : &'static str = "IRustI";
 const VERSION : &'static str = "1.4.2.4";
