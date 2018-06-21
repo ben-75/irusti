@@ -52,7 +52,7 @@ impl Default for Kerl {
 }
 
 impl Sponge for Kerl {
-    fn absorb(&mut self, trits: Vec<i8>, mut offset: usize,mut length :usize) {
+    fn absorb(&mut self, trits: &mut [i8]) {
         assert_eq!(trits.len() % HASH_LENGTH, 0);
         let mut bytes = [0; BYTE_LENGTH];
         for chunk in trits.chunks(HASH_LENGTH) {
@@ -63,7 +63,7 @@ impl Sponge for Kerl {
         }
     }
 
-    fn squeeze(&mut self, trits: Vec<i8>,mut offset: usize, length: usize)->Vec<i8>{
+    fn squeeze(&mut self, trits: &mut [i8]) {
         assert_eq!(trits.len() % HASH_LENGTH, 0);
         for chunk in trits.chunks_mut(HASH_LENGTH) {
             self.keccak.pad();
@@ -78,7 +78,6 @@ impl Sponge for Kerl {
             }
             self.keccak.update(&self.byte_state);
         }
-        trits
     }
 }
 

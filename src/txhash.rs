@@ -2,6 +2,7 @@ use std::str::FromStr;
 use curl::SpongeMode;
 use curl::Curl;
 use curl::Sponge;
+use curl::HASH_LENGTH;
 use std::hash::{Hash, self};
 use std::fmt;
 use converter::i8_to_trits;
@@ -60,9 +61,12 @@ impl TxHash {
             _ => Curl::new_curl_p81(),
         };
         curl.reset();
-        curl.absorb(integers,0,sz);
+        curl.absorb(integers);
+
+        let mut out :[i8;HASH_LENGTH] = [0;HASH_LENGTH];
+        curl.squeeze(&mut out);
         Ok(TxHash {
-            arr: hash_trits_to_bytes(curl.squeeze(0,243)),
+            arr: hash_trits_to_bytes(out),
         })
     }
 
@@ -75,9 +79,11 @@ impl TxHash {
             _ => Curl::new_curl_p81(),
         };
         curl.reset();
-        curl.absorb(integers,0,sz);
+        curl.absorb(integers);
+        let mut out :[i8;HASH_LENGTH] = [0;HASH_LENGTH];
+        curl.squeeze(&mut out);
         Ok(TxHash {
-            arr: hash_trits_to_bytes(curl.squeeze(0,243)),
+            arr: hash_trits_to_bytes(out),
         })
     }
 

@@ -32,6 +32,9 @@ const TESTNET_PACKET_SIZE: &'static str = "1653";
 const REQ_HASH_SIZE: &'static str = "46";
 const TESTNET_REQ_HASH_SIZE: &'static str = "49";
 
+/// The configuration parameters of IRustI.
+/// Default values can overidden in an ini file and on the command line (command line parameters
+/// having the priority).
 pub struct Configuration {
     conf: HashMap<DefaultConfSettings,String>,
     ini_file_param: Ini,

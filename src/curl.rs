@@ -1,7 +1,7 @@
 pub trait Sponge {
     fn reset(&mut self);
     fn absorb(&mut self, trites_to_calculate :Vec<i8>, offset :usize, length :usize);
-    fn squeeze(&mut self, offset :usize, length :usize) -> [i8;243];
+    fn squeeze(&mut self, out :&mut [i8;243]);
 }
 
 #[derive(PartialEq)]
@@ -16,7 +16,7 @@ pub struct Curl {
     state :[i8;729]
 }
 
-const HASH_LENGTH :usize = 243;
+pub const HASH_LENGTH :usize = 243;
 const STATE_LENGTH :usize = 3 * HASH_LENGTH;
 const TRUTH_TABLE :[i8;11]= [1, 0, -1, 2, 1, -1, 0, 2, -1, 1, 0];
 
@@ -25,7 +25,9 @@ impl Sponge for Curl {
         self.state = [0;729];
     }
 
-    fn absorb(&mut self, trites_to_calculate :Vec<i8>, mut offset: usize,mut length :usize) {
+    fn absorb(&mut self, trites_to_calculate :Vec<i8>) {
+        let mut offset :usize =0;
+        let mut length :usize =trites_to_calculate.len()*3;
         while {
             let l = if length < HASH_LENGTH {length} else {HASH_LENGTH};
             self.state[0..l].copy_from_slice(&trites_to_calculate[offset..offset+l]);
@@ -37,19 +39,20 @@ impl Sponge for Curl {
         }{}
     }
 
-    fn squeeze(&mut self, mut offset: usize,mut length: usize) -> [i8;243] {
-        let mut trits :[i8;243] = [0;243];
+    fn squeeze(&mut self, &mut  out: [i8;HASH_LENGTH]){
+        let mut offset :usize = 0;
+        let mut length :usize = HASH_LENGTH;
         while {
             let l = if length < HASH_LENGTH {length} else {HASH_LENGTH};
 
-            trits[offset..offset+l].copy_from_slice(&self.state[0..l]);
+            out[offset..offset+l].copy_from_slice(&self.state[0..l]);
             self.transform();
             offset += HASH_LENGTH;
 
             length -= HASH_LENGTH;
             length > 0
         }{}
-        trits
+        out
     }
 
 }
@@ -106,8 +109,9 @@ mod tests {
             let mut in_trits = converter::trytes_to_trits(TRYTES.to_string());
             let mut hash_trits = [0_i8; HASH_LENGTH];
             let mut curl = Curl::new_curl_p81();
-            curl.absorb(in_trits,0,3*TRYTES.len());
-            hash_trits = curl.squeeze(0,243);
+            curl.absorb(in_trits);
+        let mut out :[i8;HASH_LENGTH] = [0;HASH_LENGTH];
+            hash_trits = curl.squeeze(&mut out);
 //            let out_trytes = converter::to_string(hash_trits,81);
 //            assert_eq!(HASH, TxHash{arr: hash_trits}.to_string());
         println!("{:?}", now.elapsed());
