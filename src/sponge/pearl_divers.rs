@@ -307,7 +307,7 @@ mod tests {
     }
 
     // Recommended to run this with --release
-    #[test]
+    //#[test]
     fn test_no_random_fail() {
         let mut rng = thread_rng();
         let mut curl = Curl::new_curl_p81();
