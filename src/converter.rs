@@ -1,3 +1,52 @@
+pub fn trits_from_string(trytes: &str) -> Result<Vec<i8>,&str>{
+    let size_in_trits = trytes.len() * 3;
+    let mut response = Vec::with_capacity(size_in_trits);
+    for c in trytes.to_string().chars() {
+        match c {
+            '9' => response.extend_from_slice(&[0, 0, 0]),
+            'A' => response.extend_from_slice(&[1, 0, 0]),
+            'B' => response.extend_from_slice(&[-1, 1, 0]),
+            'C' => response.extend_from_slice(&[0, 1, 0]),
+            'D' => response.extend_from_slice(&[1, 1, 0]),
+            'E' => response.extend_from_slice(&[-1, -1, 1]),
+            'F' => response.extend_from_slice(&[0, -1, 1]),
+            'G' => response.extend_from_slice(&[1, -1, 1]),
+            'H' => response.extend_from_slice(&[-1, 0, 1]),
+            'I' => response.extend_from_slice(&[0, 0, 1]),
+            'J' => response.extend_from_slice(&[1, 0, 1]),
+            'K' => response.extend_from_slice(&[-1, 1, 1]),
+            'L' => response.extend_from_slice(&[0, 1, 1]),
+            'M' => response.extend_from_slice(&[1, 1, 1]),
+            'N' => response.extend_from_slice(&[-1, -1, -1]),
+            'O' => response.extend_from_slice(&[0, -1, -1]),
+            'P' => response.extend_from_slice(&[1, -1, -1]),
+            'Q' => response.extend_from_slice(&[-1, 0, -1]),
+            'R' => response.extend_from_slice(&[0, 0, -1]),
+            'S' => response.extend_from_slice(&[1, 0, -1]),
+            'T' => response.extend_from_slice(&[-1, 1, -1]),
+            'U' => response.extend_from_slice(&[0, 1, -1]),
+            'V' => response.extend_from_slice(&[1, 1, -1]),
+            'W' => response.extend_from_slice(&[-1, -1, 0]),
+            'X' => response.extend_from_slice(&[0, -1, 0]),
+            'Y' => response.extend_from_slice(&[1, -1, 0]),
+            'Z' => response.extend_from_slice(&[-1, 0, 0]),
+            _ => return Err("Invalid tryte"),
+        }
+    }
+    Ok(response)
+}
+
+pub fn trits_to_string(t: &[i8]) -> Option<String> {
+    if t.len() % 3 != 0 {
+        return None;
+    }
+    let mut s = String::with_capacity(t.len()/3);
+    for i in 0..t.len()/3 {
+        let k = i*3;
+        s.push(tuple_2_char((t[k],t[k+1],t[k+2])));
+    }
+    Some(s)
+}
 
 pub fn to_bytes(trytes: &str) -> Result<Vec<i8>,&str>{
     let size_in_byte = if (trytes.len() * 3) % 5 >0 {((trytes.len()*3)/5)+1} else {(trytes.len()*3)/5};

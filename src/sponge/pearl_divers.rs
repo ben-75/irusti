@@ -4,7 +4,6 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use sponge::curl::Curl;
 use sponge::curl::*;
-use sponge::kerl_converters::array_copy;
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum State {
@@ -153,8 +152,11 @@ fn validate_parameters(transaction_trits: &[i8], min_weight_magnitude: usize) {
 }
 
 fn copy(src_low: &[u64], src_high: &[u64], dest_low: &mut [u64], dest_high: &mut [u64]) {
-    array_copy(src_low, 0, dest_low, 0, CURL_STATE_LENGTH);
-    array_copy(src_high, 0, dest_high, 0, CURL_STATE_LENGTH);
+    //array_copy(src_low, 0, dest_low, 0, CURL_STATE_LENGTH);
+    dest_low[0..CURL_STATE_LENGTH].copy_from_slice(&src_low[0..CURL_STATE_LENGTH]);
+
+    //array_copy(src_high, 0, dest_high, 0, CURL_STATE_LENGTH);
+    dest_high[0..CURL_STATE_LENGTH].copy_from_slice(&src_high[0..CURL_STATE_LENGTH]);
 }
 
 fn initialize_mid_curl_states(
@@ -276,9 +278,10 @@ mod tests {
     use super::*;
 
     use rand::{thread_rng, Rng};
+    use std::time::{Duration, Instant};
 
     const HASH_SIZE: usize = 243;
-    const MIN_WEIGHT_MAGNITUDE: usize = 9;
+    const MIN_WEIGHT_MAGNITUDE: usize = 14;
 
     #[test]
     fn test_cancel() {
@@ -304,11 +307,13 @@ mod tests {
     }
 
     // Recommended to run this with --release
-    //#[test]
+    #[test]
     fn test_no_random_fail() {
         let mut rng = thread_rng();
         let mut curl = Curl::new_curl_p81();
-        for i in 0..1000 {
+        let now = Instant::now();
+        let count = 100;
+        for i in 0..count {
             let vec: Vec<i8> = (0..8019).map(|_| rng.gen_range(-1, 2)).collect();
             let mut trits = [0; 8019];
             trits.copy_from_slice(&vec);
@@ -320,9 +325,12 @@ mod tests {
             for j in (HASH_SIZE - MIN_WEIGHT_MAGNITUDE..HASH_SIZE - 1).rev() {
                 assert_eq!(hash_trits[j], 0);
             }
-            if i % 100 == 0 {
+            if i % (count/10) == 0 {
                 println!("{} successful hashes.", i);
             }
         }
+        println!("{:?}", now.elapsed()/count);
+        println!("{:?} pow/sec", count as u64/now.elapsed().as_secs());
+
     }
 }

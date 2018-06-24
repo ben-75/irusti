@@ -5,7 +5,7 @@
 
 use sponge::sponge::Sponge;
 use sponge::keccak::Keccak;
-use sponge::kerl_converters::*;
+//use sponge::kerl_converters::*;
 use converter::trytes_to_trits;
 const BIT_HASH_LENGTH: usize = 384;
 const BYTE_HASH_LENGTH: usize = BIT_HASH_LENGTH / 8;
@@ -302,7 +302,7 @@ mod tests {
     fn kerl_one_absorb() {
         let mut trits: Vec<i8> = trits_from_string(
             "GYOMKVTSNHVJNCNFBBAH9AAMXLPLLLROQY99QN9DLSJUHDPBLCFFAIQXZA9BKMBJCYSFHFPXAHDWZFEIZ",
-        );
+        ).unwrap();
         let mut kerl = Kerl::default();
         kerl.absorb( trits.as_mut());
         let mut out = [0; 243];
@@ -334,12 +334,12 @@ JQNDWRYLCA".to_string());
 
     #[test]
     fn kerl_multi_squeeze() {
-        let mut trits: Vec<i8> =
-            "9MIDYNHBWMBCXVDEFOFWINXTERALUKYYPPHKP9JJFGJEIUY9MUDVNFZHMMWZUYUSWAIOWEVTHNWMHANBH"
-                .chars()
-                .flat_map(char_to_trits)
-                .cloned()
-                .collect();
+        let mut trits: Vec<i8> = trytes_to_trits("9MIDYNHBWMBCXVDEFOFWINXTERALUKYYPPHKP9JJFGJEIUY9MUDVNFZHMMWZUYUSWAIOWEVTHNWMHANBH".to_string());
+//            "9MIDYNHBWMBCXVDEFOFWINXTERALUKYYPPHKP9JJFGJEIUY9MUDVNFZHMMWZUYUSWAIOWEVTHNWMHANBH"
+//                .chars()
+//                .flat_map(char_to_trits)
+//                .cloned()
+//                .collect();
         let mut kerl = Kerl::default();
         kerl.absorb(trits.as_mut());
 
