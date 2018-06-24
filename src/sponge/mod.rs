@@ -3,3 +3,4 @@ pub mod sponge;
 pub mod kerl;
 pub mod keccak;
 pub mod kerl_converters;
+pub mod pearl_divers;
