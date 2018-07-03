@@ -440,12 +440,12 @@ pub  fn trits_from_bytes<'a>(bytes :&[i8], trits: & 'a mut[i8], byte_idx :usize,
 
 }
 
-pub fn bytes_to_trits(bytes :&Vec<i8>, tryte_count :usize) -> Vec<i8> {
+pub fn bytes_to_trits(bytes :&[i8], tryte_count :usize) -> Vec<i8> {
     let mut trits_count = tryte_count*3;
     let mut response:Vec<i8> = Vec::with_capacity(trits_count);
-    for byte_index in 0..bytes.len() {
+    for item in bytes {
         if trits_count == 0 {break;}
-        let [t0,t1,t2,t3,t4] = i8_to_trits(bytes[byte_index]);
+        let [t0,t1,t2,t3,t4] = i8_to_trits(*item);
         if trits_count>0 {
             response.push(t0);
             trits_count -=1;
