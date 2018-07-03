@@ -18,7 +18,7 @@ impl Iota {
         //Coordinator init
         let mut coo_address = configuration::MAINNET_COORDINATOR_ADDRESS.to_string();
         if Configuration::get_conf_flag(&configuration, DefaultConfSettings::TESTNET.to_string().as_ref()) {
-            let tmp = Configuration::get_param(&configuration, DefaultConfSettings::COORDINATOR);
+            let tmp = Configuration::get_param(&configuration, &DefaultConfSettings::COORDINATOR);
             coo_address = match tmp {
                 Some(x) => x,
                 _ => configuration::TESTNET_COORDINATOR_ADDRESS.to_string(),

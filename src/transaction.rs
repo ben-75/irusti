@@ -11,7 +11,7 @@ use converter::get_trit;
 const SIZE :usize = 1604;
 const TAG_SIZE_IN_BYTES :usize = 17; // = ceil(81 TRITS / 5 TRITS_PER_BYTE)
 
-pub const SUPPLY :i64 = 2779530283277761; // = (3^33 - 1) / 2
+pub const SUPPLY :i64 = 2_779_530_283_277_761; // = (3^33 - 1) / 2
 
 const SIG_MSG_BYTE_OFFSET :usize = 0;
 const SIG_MSG_BIT_OFFSET :u8 = 0;

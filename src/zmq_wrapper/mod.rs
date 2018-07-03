@@ -52,20 +52,20 @@ impl MessageQ {
                     });
 
 
-                    return MessageQ{
+                    MessageQ{
                         join_handle: Some(join_handle),
                         tx: Some(tx)
-                    };
+                    }
                 }
                 Err(info) => {
                     error!("Fail to bind ZMQ on port {}. Error: {}",port, info);
                     error!("ZMQ disabled");
-                    return MessageQ{
+                    MessageQ{
                         join_handle: None,
                         tx: None
                     }
                 }
-            };
+            }
         }else{
             MessageQ{
                 join_handle: None,

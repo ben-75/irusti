@@ -177,11 +177,11 @@ impl Configuration {
         None
     }
 
-    pub fn get_param(&self, param :DefaultConfSettings) ->Option<String> {
+    pub fn get_param(&self, param :&DefaultConfSettings) ->Option<String> {
         self.get_conf_value(param.to_string().as_ref())
     }
 
-    pub fn get_flag(&self, param :DefaultConfSettings) ->bool {
+    pub fn get_flag(&self, param :&DefaultConfSettings) ->bool {
         self.get_conf_flag(param.to_string().as_ref())
     }
 
@@ -196,7 +196,7 @@ impl Configuration {
                         if self.conf.contains_key(&key) {
                             return Some(self.conf.get(&key).unwrap().to_string());
                         }
-                        return None;
+                        None
                     }
                 }
             }
@@ -213,8 +213,8 @@ impl Configuration {
     fn get_ini_flag(&self, k :&str) ->Option<bool> {
         let tmp = self.ini_file_param.get_from(Some("IRI"),k);
         match tmp {
-            Some("true") => return Some(true),
-            _ => return None,
+            Some("true") => Some(true),
+            _ => None,
         }
     }
 
@@ -229,7 +229,7 @@ impl Configuration {
                         if self.conf.contains_key(&key) {
                             return (self.conf.get(&key).unwrap()).starts_with("true");
                         }
-                        return false;
+                        false
                     }
                 }
             }
@@ -248,7 +248,7 @@ impl Configuration {
     }
 
     pub fn integer(&self, k :&str) -> i32 {
-        return i32::from_str(self.get_conf_value(k).unwrap_or("0".to_string()).as_ref()).unwrap_or(0);
+        i32::from_str(self.get_conf_value(k).unwrap_or("0".to_string()).as_ref()).unwrap_or(0)
     }
 
     pub fn booling(&self, k :&str) -> bool {
@@ -256,27 +256,27 @@ impl Configuration {
     }
 
     pub fn long_num(&self, k :&str) -> i64 {
-        return i64::from_str(self.get_conf_value(k).unwrap_or("0".to_string()).as_ref()).unwrap_or(0);
+        i64::from_str(self.get_conf_value(k).unwrap_or("0".to_string()).as_ref()).unwrap_or(0)
     }
 
-    pub fn stringify_param(&self, d :DefaultConfSettings) -> Option<String> {
-        return self.string_it(d.to_string().as_ref());
+    pub fn stringify_param(&self, d :&DefaultConfSettings) -> Option<String> {
+        self.string_it(d.to_string().as_ref())
     }
 
-    pub fn integer_param(&self, d : DefaultConfSettings) -> i32 {
-        return self.integer(d.to_string().as_ref());
+    pub fn integer_param(&self, d : &DefaultConfSettings) -> i32 {
+        self.integer(d.to_string().as_ref())
     }
 
     pub fn long_num_param(&self, d : DefaultConfSettings) -> i64 {
-        return self.long_num(d.to_string().as_ref());
+        self.long_num(d.to_string().as_ref())
     }
 
-    pub fn booling_param(&self, d : DefaultConfSettings) -> bool {
-        return self.booling(d.to_string().as_ref());
+    pub fn booling_param(&self, d : &DefaultConfSettings) -> bool {
+        self.booling(d.to_string().as_ref())
     }
 
-    pub fn floating_param(&self, d : DefaultConfSettings) -> f32 {
-        return self.floating(d.to_string().as_ref());
+    pub fn floating_param(&self, d : &DefaultConfSettings) -> f32 {
+        self.floating(d.to_string().as_ref())
     }
 
     const NOT_DEFINED:&'static str = "<UNDEFINED>";
@@ -286,57 +286,57 @@ impl Configuration {
         println!("|  CONFIGURATION   |");
         println!("====================");
         println!();
-        println!("Configuration file     : {}",self.get_param(DefaultConfSettings::CONFIG).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Port                   : {}",self.get_param(DefaultConfSettings::PORT).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("UDP receiver port      : {}",self.get_param(DefaultConfSettings::UdpReceiverPort).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("TCP receiver port      : {}",self.get_param(DefaultConfSettings::TcpReceiverPort).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Neighbors              : {}",self.get_param(DefaultConfSettings::NEIGHBORS).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("API Host               : {}",self.get_param(DefaultConfSettings::ApiHost).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Remote Limit API       : {}",self.get_param(DefaultConfSettings::RemoteLimitApi).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Remote Auth            : {}",self.get_flag(DefaultConfSettings::RemoteAuth));
-        println!("Debug                  : {}",self.get_flag(DefaultConfSettings::DEBUG));
-        println!("Testnet                : {}",self.get_flag(DefaultConfSettings::TESTNET));
-        println!("DB path                : {}",self.get_param(DefaultConfSettings::DbPath).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("DB log path            : {}",self.get_param(DefaultConfSettings::DbLogPath).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("DB cache size          : {}",self.get_param(DefaultConfSettings::DbCacheSize).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("DB                     : {}",self.get_param(DefaultConfSettings::MainDb).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("IXI Directory          : {}",self.get_param(DefaultConfSettings::IxiDir).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Prob. drop request     : {}",self.get_param(DefaultConfSettings::PRemoveRequest).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Prob. drop tx          : {}",self.get_param(DefaultConfSettings::PDropTransaction).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Prob. milest. chld     : {}",self.get_param(DefaultConfSettings::PSelectMilestoneChild).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Prob. send milest.     : {}",self.get_param(DefaultConfSettings::PSendMilestone).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Prob. random tip       : {}",self.get_param(DefaultConfSettings::PReplyRandomTip).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Prob. propag. req.     : {}",self.get_param(DefaultConfSettings::PPropagateRequest).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Export                 : {}",self.get_flag(DefaultConfSettings::EXPORT));
-        println!("Send limit             : {}",self.get_param(DefaultConfSettings::SendLimit).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Max peers              : {}",self.get_param(DefaultConfSettings::MaxPeers).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Dns resolution ON      : {}",self.get_flag(DefaultConfSettings::DnsResolutionEnabled));
-        println!("Dns refresh ON         : {}",self.get_flag(DefaultConfSettings::DnsRefresherEnabled));
-        println!("[TESTNET ONLY] Coo address            : {}",self.get_param(DefaultConfSettings::COORDINATOR).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("[TESTNET ONLY] Skp milestone val.     : {}",self.get_flag(DefaultConfSettings::DontValidateTestnetMilestoneSig));
-        println!("Revalidate             : {}",self.get_flag(DefaultConfSettings::REVALIDATE));
-        println!("Rescan                 : {}",self.get_flag(DefaultConfSettings::RescanDb));
-        println!("Min random walks       : {}",self.get_param(DefaultConfSettings::MinRandomWalks).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Max random walks       : {}",self.get_param(DefaultConfSettings::MaxRandomWalks).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Max requests list      : {}",self.get_param(DefaultConfSettings::MaxRequestsList).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Max get trytes         : {}",self.get_param(DefaultConfSettings::MaxGetTrytes).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Max body length        : {}",self.get_param(DefaultConfSettings::MaxBodyLength).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Max depth              : {}",self.get_param(DefaultConfSettings::MaxDepth).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Min weight magn.       : {}",self.get_param(DefaultConfSettings::MWM).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("ZMQ enabled            : {}",self.get_flag(DefaultConfSettings::ZmqEnabled));
-        println!("ZMQ ipc                : {}",self.get_param(DefaultConfSettings::ZmqIpc).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("ZMQ threads            : {}",self.get_param(DefaultConfSettings::ZmqThreads).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("ZMQ port               : {}",self.get_param(DefaultConfSettings::ZmqPort).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("QSize node             : {}",self.get_param(DefaultConfSettings::QSizeNode).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Prob. drop cache       : {}",self.get_param(DefaultConfSettings::PDropCacheEntry).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("PCache size (bytes)    : {}",self.get_param(DefaultConfSettings::CacheSizeBytes).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Snapshot file          : {}",self.get_param(DefaultConfSettings::SnapshotFile).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Snapshot sig. file     : {}",self.get_param(DefaultConfSettings::SnapshotSignatureFile).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Snapshot time          : {}",self.get_param(DefaultConfSettings::SnapshotTime).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Milestone start idx    : {}",self.get_param(DefaultConfSettings::MilestoneStartIndex).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Milestone keys         : {}",self.get_param(DefaultConfSettings::NumberOfKeysInAMilestone).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Tx packet size         : {}",self.get_param(DefaultConfSettings::TransactionPacketSize).unwrap_or(Configuration::NOT_DEFINED.to_string()));
-        println!("Request hash size      : {}",self.get_param(DefaultConfSettings::RequestHashSize).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Configuration file     : {}",self.get_param(&DefaultConfSettings::CONFIG).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Port                   : {}",self.get_param(&DefaultConfSettings::PORT).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("UDP receiver port      : {}",self.get_param(&DefaultConfSettings::UdpReceiverPort).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("TCP receiver port      : {}",self.get_param(&DefaultConfSettings::TcpReceiverPort).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Neighbors              : {}",self.get_param(&DefaultConfSettings::NEIGHBORS).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("API Host               : {}",self.get_param(&DefaultConfSettings::ApiHost).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Remote Limit API       : {}",self.get_param(&DefaultConfSettings::RemoteLimitApi).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Remote Auth            : {}",self.get_flag(&DefaultConfSettings::RemoteAuth));
+        println!("Debug                  : {}",self.get_flag(&DefaultConfSettings::DEBUG));
+        println!("Testnet                : {}",self.get_flag(&DefaultConfSettings::TESTNET));
+        println!("DB path                : {}",self.get_param(&DefaultConfSettings::DbPath).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("DB log path            : {}",self.get_param(&DefaultConfSettings::DbLogPath).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("DB cache size          : {}",self.get_param(&DefaultConfSettings::DbCacheSize).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("DB                     : {}",self.get_param(&DefaultConfSettings::MainDb).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("IXI Directory          : {}",self.get_param(&DefaultConfSettings::IxiDir).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Prob. drop request     : {}",self.get_param(&DefaultConfSettings::PRemoveRequest).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Prob. drop tx          : {}",self.get_param(&DefaultConfSettings::PDropTransaction).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Prob. milest. chld     : {}",self.get_param(&DefaultConfSettings::PSelectMilestoneChild).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Prob. send milest.     : {}",self.get_param(&DefaultConfSettings::PSendMilestone).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Prob. random tip       : {}",self.get_param(&DefaultConfSettings::PReplyRandomTip).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Prob. propag. req.     : {}",self.get_param(&DefaultConfSettings::PPropagateRequest).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Export                 : {}",self.get_flag(&DefaultConfSettings::EXPORT));
+        println!("Send limit             : {}",self.get_param(&DefaultConfSettings::SendLimit).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Max peers              : {}",self.get_param(&DefaultConfSettings::MaxPeers).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Dns resolution ON      : {}",self.get_flag(&DefaultConfSettings::DnsResolutionEnabled));
+        println!("Dns refresh ON         : {}",self.get_flag(&DefaultConfSettings::DnsRefresherEnabled));
+        println!("[TESTNET ONLY] Coo address            : {}",self.get_param(&DefaultConfSettings::COORDINATOR).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("[TESTNET ONLY] Skp milestone val.     : {}",self.get_flag(&DefaultConfSettings::DontValidateTestnetMilestoneSig));
+        println!("Revalidate             : {}",self.get_flag(&DefaultConfSettings::REVALIDATE));
+        println!("Rescan                 : {}",self.get_flag(&DefaultConfSettings::RescanDb));
+        println!("Min random walks       : {}",self.get_param(&DefaultConfSettings::MinRandomWalks).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Max random walks       : {}",self.get_param(&DefaultConfSettings::MaxRandomWalks).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Max requests list      : {}",self.get_param(&DefaultConfSettings::MaxRequestsList).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Max get trytes         : {}",self.get_param(&DefaultConfSettings::MaxGetTrytes).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Max body length        : {}",self.get_param(&DefaultConfSettings::MaxBodyLength).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Max depth              : {}",self.get_param(&DefaultConfSettings::MaxDepth).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Min weight magn.       : {}",self.get_param(&DefaultConfSettings::MWM).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("ZMQ enabled            : {}",self.get_flag(&DefaultConfSettings::ZmqEnabled));
+        println!("ZMQ ipc                : {}",self.get_param(&DefaultConfSettings::ZmqIpc).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("ZMQ threads            : {}",self.get_param(&DefaultConfSettings::ZmqThreads).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("ZMQ port               : {}",self.get_param(&DefaultConfSettings::ZmqPort).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("QSize node             : {}",self.get_param(&DefaultConfSettings::QSizeNode).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Prob. drop cache       : {}",self.get_param(&DefaultConfSettings::PDropCacheEntry).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("PCache size (bytes)    : {}",self.get_param(&DefaultConfSettings::CacheSizeBytes).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Snapshot file          : {}",self.get_param(&DefaultConfSettings::SnapshotFile).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Snapshot sig. file     : {}",self.get_param(&DefaultConfSettings::SnapshotSignatureFile).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Snapshot time          : {}",self.get_param(&DefaultConfSettings::SnapshotTime).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Milestone start idx    : {}",self.get_param(&DefaultConfSettings::MilestoneStartIndex).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Milestone keys         : {}",self.get_param(&DefaultConfSettings::NumberOfKeysInAMilestone).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Tx packet size         : {}",self.get_param(&DefaultConfSettings::TransactionPacketSize).unwrap_or(Configuration::NOT_DEFINED.to_string()));
+        println!("Request hash size      : {}",self.get_param(&DefaultConfSettings::RequestHashSize).unwrap_or(Configuration::NOT_DEFINED.to_string()));
         println!("====================");
         println!();
     }

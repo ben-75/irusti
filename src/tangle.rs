@@ -41,7 +41,7 @@ impl Tangle {
         let mut opts = Options::default();
         opts.create_if_missing(true);
         opts.create_missing_column_families(true);
-        opts.set_max_manifest_file_size(1048576);
+        opts.set_max_manifest_file_size(1_048_576);
         opts.set_max_open_files(10000);
         opts.set_max_background_compactions(1);
         opts.set_allow_concurrent_memtable_write(true);

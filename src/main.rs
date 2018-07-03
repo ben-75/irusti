@@ -28,10 +28,10 @@ pub mod transaction_validator;
 pub mod transaction;
 pub mod sponge;
 
-const APP_NAME : &'static str = "IRustI";
-const VERSION : &'static str = "1.4.2.4";
-const AUTHOR : &'static str = "ben75";
-const ABOUT : &'static str = "Rust implementation of IOTA protocol";
+const APP_NAME : &str = "IRustI";
+const VERSION : &str = "1.4.2.4";
+const AUTHOR : &str = "ben75";
+const ABOUT : &str = "Rust implementation of IOTA protocol";
 
 fn main() {
     log4rs::init_file("log4rs.yml", Default::default()).unwrap();
@@ -185,69 +185,69 @@ fn main() {
     //create a configuration based on default values and config file
     let configuration = Configuration::new(app);
 
-    if configuration.get_param(configuration::DefaultConfSettings::NEIGHBORS).is_some(){
+    if configuration.get_param(&configuration::DefaultConfSettings::NEIGHBORS).is_some(){
         warn!("No neighbor has been specified. Server starting nodeless.");
     }
 
-    if configuration.get_param(configuration::DefaultConfSettings::RemoteLimitApi).is_some(){
-        debug!("The following api calls are not allowed : {:?} ", configuration.get_param(configuration::DefaultConfSettings::RemoteLimitApi).unwrap());
+    if configuration.get_param(&configuration::DefaultConfSettings::RemoteLimitApi).is_some(){
+        debug!("The following api calls are not allowed : {:?} ", configuration.get_param(&configuration::DefaultConfSettings::RemoteLimitApi).unwrap());
     }
 
-    if configuration.booling_param(configuration::DefaultConfSettings::RemoteAuth){
+    if configuration.booling_param(&configuration::DefaultConfSettings::RemoteAuth){
         debug!("Remote access requires basic authentication");
     }
 
-    if configuration.booling_param(configuration::DefaultConfSettings::ApiHost){
+    if configuration.booling_param(&configuration::DefaultConfSettings::ApiHost){
         info!("Remote access enabled. Binding API socket to listen any interface.");
     }
 
-    if configuration.booling_param(configuration::DefaultConfSettings::EXPORT){
+    if configuration.booling_param(&configuration::DefaultConfSettings::EXPORT){
         info!("Export transaction trytes turned on.");
     }
 
-    if configuration.integer_param(configuration::DefaultConfSettings::PORT) < 1024 {
+    if configuration.integer_param(&configuration::DefaultConfSettings::PORT) < 1024 {
         warn!("Warning: api port value seems too low.");
     }
 
 
-    if configuration.booling_param(configuration::DefaultConfSettings::TESTNET){
+    if configuration.booling_param(&configuration::DefaultConfSettings::TESTNET){
         info!("Use Testnet !");
     }
 
-    if configuration.booling_param(configuration::DefaultConfSettings::DEBUG){
+    if configuration.booling_param(&configuration::DefaultConfSettings::DEBUG){
         info!("Debug mode turned on.");
         configuration.print();
     }
 
-    if configuration.get_param(configuration::DefaultConfSettings::COORDINATOR).is_some() {
-        if !configuration.booling_param(configuration::DefaultConfSettings::TESTNET){
+    if configuration.get_param(&configuration::DefaultConfSettings::COORDINATOR).is_some() {
+        if !configuration.booling_param(&configuration::DefaultConfSettings::TESTNET){
             warn!("coordinator-address is ignored. (it requires the --testnet flag)");
         }
     }
 
-    if configuration.booling_param(configuration::DefaultConfSettings::DontValidateTestnetMilestoneSig){
-        if !configuration.booling_param(configuration::DefaultConfSettings::TESTNET){
+    if configuration.booling_param(&configuration::DefaultConfSettings::DontValidateTestnetMilestoneSig){
+        if !configuration.booling_param(&configuration::DefaultConfSettings::TESTNET){
             warn!("testnet-no-coo-validation is ignored. (it requires the --testnet flag)");
         }
     }
 
-    let db_path = Tangle::get_effective_path(configuration.get_param(DefaultConfSettings::DbPath).unwrap(),
-                                             configuration.get_flag(DefaultConfSettings::TESTNET));
+    let db_path = Tangle::get_effective_path(configuration.get_param(&DefaultConfSettings::DbPath).unwrap(),
+                                             configuration.get_flag(&DefaultConfSettings::TESTNET));
     let db_path_copy = db_path.clone();
     {
         let tangle = Tangle::new(db_path);
         let tips_view_model = TipsViewModel::new();
 
         let message_q = MessageQ::new(
-            Configuration::integer_param(&configuration, DefaultConfSettings::ZmqThreads),
-            Configuration::stringify_param(&configuration, DefaultConfSettings::ZmqIpc),
-            Configuration::integer_param(&configuration, DefaultConfSettings::ZmqPort),
-            Configuration::booling_param(&configuration, DefaultConfSettings::ZmqEnabled)
+            Configuration::integer_param(&configuration, &DefaultConfSettings::ZmqThreads),
+            Configuration::stringify_param(&configuration, &DefaultConfSettings::ZmqIpc),
+            Configuration::integer_param(&configuration, &DefaultConfSettings::ZmqPort),
+            Configuration::booling_param(&configuration, &DefaultConfSettings::ZmqEnabled)
         );
         message_q.publish("hey there");
         {
             let transaction_requester = TransactionRequester::new(10000,
-                                                                  configuration.floating_param(DefaultConfSettings::PRemoveRequest),
+                                                                  configuration.floating_param(&DefaultConfSettings::PRemoveRequest),
                                                                   &tangle, &message_q);
             let iota = Iota::new(configuration);
             iota.shutdown();

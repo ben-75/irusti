@@ -42,7 +42,7 @@ impl<'a,'b> TransactionRequester<'a,'b> {
     pub fn clear_transaction_request(&mut self, hash :TxHash) -> bool {
         let milestone :bool = self.milestone_transactions_to_request.remove(&hash);
         let normal :bool = self.transactions_to_request.remove(&hash);
-        return normal || milestone;
+        normal || milestone
     }
 
     pub fn request_transaction(&mut self, hash :TxHash, milestone :bool) -> &mut TransactionRequester<'a,'b>{
