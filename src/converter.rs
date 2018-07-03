@@ -158,7 +158,7 @@ pub fn u64_to_trits(value :i64) -> [i8;40]{
     i64_to_trits(value as i64)
 }
 
-pub fn u64_from_trits(trits :Vec<i8>)->u64 {
+pub fn u64_from_trits(trits :&[i8])->u64 {
     let mut response :i64=0;
     let mut factor :i64 = 1;
     for i in 0..39 {
@@ -167,7 +167,7 @@ pub fn u64_from_trits(trits :Vec<i8>)->u64 {
     }
     response as u64
 }
-pub fn i64_from_trits(trits :Vec<i8>)->i64 {
+pub fn i64_from_trits(trits :&[i8])->i64 {
     let mut response :i64=0;
     let mut factor :i64 = 1;
     for i in 0..39 {
@@ -177,11 +177,13 @@ pub fn i64_from_trits(trits :Vec<i8>)->i64 {
     response
 }
 
-pub fn u64_from_bytes(bytes :&Vec<i8>, trits_count :usize, byte_idx :usize, trit_offset :u8)->u64{
-    u64_from_trits(trits_from_bytes(bytes,trits_count,byte_idx,trit_offset))
+pub fn u64_from_bytes(bytes :&[i8], byte_idx :usize, trit_offset :u8)->u64{
+    let mut trits :[i8;40] = [0;40];
+    u64_from_trits(trits_from_bytes(bytes,&mut trits,byte_idx,trit_offset))
 }
-pub fn i64_from_bytes(bytes :&Vec<i8>, trits_count :usize, byte_idx :usize, trit_offset :u8)->i64{
-    i64_from_trits(trits_from_bytes(bytes,trits_count,byte_idx,trit_offset))
+pub fn i64_from_bytes(bytes :&[i8], byte_idx :usize, trit_offset :u8)->i64{
+    let mut trits :[i8;40] = [0;40];
+    i64_from_trits(trits_from_bytes(bytes,&mut trits,byte_idx,trit_offset))
 }
 pub fn i64_to_trits(value :i64) -> [i8;40]{
     let mut v = value;
@@ -378,7 +380,8 @@ pub fn tuple_2_char((t0,t1,t2) :(i8,i8,i8)) -> char {
     }
 }
 
-pub fn trits_from_bytes(bytes :&Vec<i8>, trits_count :usize, byte_idx :usize, trit_offset :u8) ->Vec<i8>{
+pub  fn trits_from_bytes<'a>(bytes :&[i8], trits: & 'a mut[i8], byte_idx :usize, trit_offset :u8) -> &'a[i8]{
+    let trits_count = trits.len();
     let mut response:Vec<i8> = Vec::with_capacity(trits_count);
     let mut trit_index = 0;
     let mut byte_index = byte_idx;
@@ -432,7 +435,9 @@ pub fn trits_from_bytes(bytes :&Vec<i8>, trits_count :usize, byte_idx :usize, tr
             }
         }
     }
-    response
+    trits.copy_from_slice(response.as_ref());
+    trits
+
 }
 
 pub fn bytes_to_trits(bytes :&Vec<i8>, tryte_count :usize) -> Vec<i8> {

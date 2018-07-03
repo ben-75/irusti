@@ -280,13 +280,13 @@ impl Transaction {
     }
 
     pub fn timestamp(&self)->u64{
-        u64_from_bytes(&self.arr.to_vec(),40,TIMESTAMP_BYTE_OFFSET,TIMESTAMP_BIT_OFFSET)
+        u64_from_bytes(&self.arr,TIMESTAMP_BYTE_OFFSET,TIMESTAMP_BIT_OFFSET)
     }
     pub fn attachment_timestamp(&self)->u64{
-        u64_from_bytes(&self.arr.to_vec(),40,ATTACHMENT_TS_BYTE_OFFSET,ATTACHMENT_TS_BIT_OFFSET)
+        u64_from_bytes(&self.arr,ATTACHMENT_TS_BYTE_OFFSET,ATTACHMENT_TS_BIT_OFFSET)
     }
     pub fn value(&self) -> i64 {
-        i64_from_bytes(&self.arr.to_vec(),40,VALUE_BYTE_OFFSET,VALUE_BIT_OFFSET)
+        i64_from_bytes(&self.arr,VALUE_BYTE_OFFSET,VALUE_BIT_OFFSET)
     }
     pub fn last_address_trit_is_zero(&self) -> bool {
         get_trit(&self.arr.to_vec(),ADDRESS_BYTE_OFFSET+ADDRESS_BYTE_SIZE+((ADDRESS_BIT_OFFSET+SIG_MSG_BIT_OFFSET)/5) as usize,((ADDRESS_BIT_OFFSET+ADDRESS_BYTE_OVERFLOW-1)%5))==0

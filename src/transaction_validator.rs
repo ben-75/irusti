@@ -25,7 +25,7 @@ impl TransactionValidator {
         attachment_ts != 0 && (attachment_ts < self.snapshot_ts || (attachment_ts > (now_in_ms() + MAX_TIMESTAMP_FUTURE_MS)))
     }
 
-    pub fn run_validation(&self, tx : Transaction) ->Result<(),&'static str> {
+    pub fn run_validation(&self, tx : &Transaction) ->Result<(),&'static str> {
         let h= match TxHash::compute_from_bytes(tx.bytes(), TRINARY_SIZE, SpongeMode::CurlP81)  {
             Err(()) => return Err(ERR_INVALID_TRANSACTION_TRITS),
             Ok(x) => x,
@@ -87,7 +87,7 @@ mod tests {
                                   Some(now_in_ms()+5000+MAX_TIMESTAMP_FUTURE_MS), None, None,
                                   Some("TXEFLKNPJRBYZPORHZU9CEMFIFVVQBUSTDGSJCZMBTZCDTTJVUFPTCCVHHORPMGCURKTH9VGJIXUQJVHK"),None, None, None, None,
                                   None, None,None).unwrap();
-        match transaction_validator.run_validation(tx){
+        match transaction_validator.run_validation(&tx){
             Ok(()) => panic!("Expecting invalid"),
             Err(ERR_INVALID_TIMESTAMP) => (),
             Err(x) => panic!("Expecting invalid timestamp but got {}",x),
@@ -104,7 +104,7 @@ mod tests {
                                   Some(now_in_ms()+500), None, None,
                                   Some("TXEFLKNPJRBYZPORHZU9CEMFIFVVQBUSTDGSJCZMBTZCDTTJVUFPTCCVHHORPMGCURKTH9VGJIXUQJVHK"),None, None, None, None,
                                   None, None,None).unwrap();
-        match transaction_validator.run_validation(tx){
+        match transaction_validator.run_validation(&tx){
             Ok(()) => panic!("Expecting invalid"),
             Err(ERR_INVALID_VALUE) => (),
             Err(x) => panic!("Expecting invalid value but got {}",x),
@@ -121,7 +121,7 @@ mod tests {
                                   Some(1482522289+500), None, None,
                                   Some("TXEFLKNPJRBYZPORHZU9CEMFIFVVQBUSTDGSJCZMBTZCDTTJVUFPTCCVHHORPMGCURKTH9VGJIXUQJVHK"),None, None, None, None,
                                   None, None,None).unwrap();
-        match transaction_validator.run_validation(tx){
+        match transaction_validator.run_validation(&tx){
             Ok(()) => panic!("Expecting invalid"),
             Err(ERR_INVALID_TRANSACTION_HASH) => (),
             Err(x) => panic!("Expecting invalid hash but got {}",x),
@@ -138,7 +138,7 @@ mod tests {
                                   Some(1482522284+500), None, None,
                                   Some("TXEFLKNPJRBYZPORHZU9CEMFIFVVQBUSTDGSJCZMBTZCDTTJVUFPTCCVHHORPMGCURKTH9VGJIXUQJVHK"),None, None, None, None,
                                   None, None,None).unwrap();
-        match transaction_validator.run_validation(tx){
+        match transaction_validator.run_validation(&tx){
             Ok(()) => (),
             Err(x) => panic!("Expecting valid tx but got {}",x),
         }
@@ -154,7 +154,7 @@ mod tests {
                                   Some(1482522284+500), None, None,
                                   Some("TXEFLKNPJRBYZPORHZU9CEMFIFVVQBUSTDGSJCZMBTZCDTTJVUFPTCCVHHORPMGCURKTH9VGJIXUQJVHK"),None, None, None, None,
                                   None, None,None).unwrap();
-        match transaction_validator.run_validation(tx){
+        match transaction_validator.run_validation(&tx){
             Ok(()) => panic!("Expecting invalid"),
             Err(ERR_INVALID_ADDRESS) => (),
             Err(x) => panic!("Expecting invalid hash but got {}",x),
