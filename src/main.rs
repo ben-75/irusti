@@ -4,8 +4,6 @@ extern crate log;
 extern crate log4rs;
 extern crate linked_hash_set;
 extern crate rand;
-#[macro_use]
-extern crate lazy_static;
 extern crate crossbeam;
 extern crate num_cpus;
 

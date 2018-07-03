@@ -43,7 +43,7 @@ impl TxHash {
     fn internal_trailing_zeros(&self, index :usize) ->i32 {
         let i8_arr = i8_to_trits(self.arr[index]);
         match  (i8_arr[0],i8_arr[1],i8_arr[2],i8_arr[3],i8_arr[4]) {
-            (0,0,0,0,0) => if index>0 {5+self.internal_trailing_zeros(index-1)} else {5},
+            (0,0,0,0,0) => if index>0 { 5+self.internal_trailing_zeros(index-1) } else {5},
             (_,0,0,0,0) => 4,
             (_,_,0,0,0) => 3,
             (_,_,_,0,0) => 2,
@@ -53,7 +53,6 @@ impl TxHash {
     }
 
     pub fn compute_from_trytes(trytes : String, mode :SpongeMode) -> Result<TxHash,()> {
-        let sz = 3*trytes.len();
         let integers = trytes_to_trits(trytes);
 
         let mut curl = match mode {

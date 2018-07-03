@@ -110,35 +110,35 @@ pub fn keccakf(a: &mut [u64; PLEN]) {
 
 
 
-        a[0 + 0] ^= array[(0 + 4) % 5] ^ array[(0 + 1) % 5].rotate_left(1);
-        a[5 + 0] ^= array[(0 + 4) % 5] ^ array[(0 + 1) % 5].rotate_left(1);
-        a[10 + 0] ^= array[(0 + 4) % 5] ^ array[(0 + 1) % 5].rotate_left(1);
-        a[15 + 0] ^= array[(0 + 4) % 5] ^ array[(0 + 1) % 5].rotate_left(1);
-        a[20 + 0] ^= array[(0 + 4) % 5] ^ array[(0 + 1) % 5].rotate_left(1);
+        a[0] ^= array[(4) % 5] ^ array[(1) % 5].rotate_left(1);
+        a[5 + 0] ^= array[(4) % 5] ^ array[(1) % 5].rotate_left(1);
+        a[10] ^= array[(4) % 5] ^ array[(1) % 5].rotate_left(1);
+        a[15 + 0] ^= array[(4) % 5] ^ array[(1) % 5].rotate_left(1);
+        a[20] ^= array[(4) % 5] ^ array[(1) % 5].rotate_left(1);
 
-        a[0 + 1] ^= array[(1 + 4) % 5] ^ array[(1 + 1) % 5].rotate_left(1);
+        a[1] ^= array[(1 + 4) % 5] ^ array[(1 + 1) % 5].rotate_left(1);
         a[5 + 1] ^= array[(1 + 4) % 5] ^ array[(1 + 1) % 5].rotate_left(1);
-        a[10 + 1] ^= array[(1 + 4) % 5] ^ array[(1 + 1) % 5].rotate_left(1);
+        a[11] ^= array[(1 + 4) % 5] ^ array[(1 + 1) % 5].rotate_left(1);
         a[15 + 1] ^= array[(1 + 4) % 5] ^ array[(1 + 1) % 5].rotate_left(1);
-        a[20 + 1] ^= array[(1 + 4) % 5] ^ array[(1 + 1) % 5].rotate_left(1);
+        a[21] ^= array[(1 + 4) % 5] ^ array[(1 + 1) % 5].rotate_left(1);
 
-        a[0 + 2] ^= array[(2 + 4) % 5] ^ array[(2 + 1) % 5].rotate_left(1);
+        a[2] ^= array[(2 + 4) % 5] ^ array[(2 + 1) % 5].rotate_left(1);
         a[5 + 2] ^= array[(2 + 4) % 5] ^ array[(2 + 1) % 5].rotate_left(1);
-        a[10 + 2] ^= array[(2 + 4) % 5] ^ array[(2 + 1) % 5].rotate_left(1);
+        a[12] ^= array[(2 + 4) % 5] ^ array[(2 + 1) % 5].rotate_left(1);
         a[15 + 2] ^= array[(2 + 4) % 5] ^ array[(2 + 1) % 5].rotate_left(1);
-        a[20 + 2] ^= array[(2 + 4) % 5] ^ array[(2 + 1) % 5].rotate_left(1);
+        a[22] ^= array[(2 + 4) % 5] ^ array[(2 + 1) % 5].rotate_left(1);
 
-        a[0 + 3] ^= array[(3 + 4) % 5] ^ array[(3 + 1) % 5].rotate_left(1);
+        a[3] ^= array[(3 + 4) % 5] ^ array[(3 + 1) % 5].rotate_left(1);
         a[5 + 3] ^= array[(3 + 4) % 5] ^ array[(3 + 1) % 5].rotate_left(1);
-        a[10 + 3] ^= array[(3 + 4) % 5] ^ array[(3 + 1) % 5].rotate_left(1);
+        a[13] ^= array[(3 + 4) % 5] ^ array[(3 + 1) % 5].rotate_left(1);
         a[15 + 3] ^= array[(3 + 4) % 5] ^ array[(3 + 1) % 5].rotate_left(1);
-        a[20 + 3] ^= array[(3 + 4) % 5] ^ array[(3 + 1) % 5].rotate_left(1);
+        a[23] ^= array[(3 + 4) % 5] ^ array[(3 + 1) % 5].rotate_left(1);
 
-        a[0 + 4] ^= array[(4 + 4) % 5] ^ array[(4 + 1) % 5].rotate_left(1);
+        a[4] ^= array[(4 + 4) % 5] ^ array[(4 + 1) % 5].rotate_left(1);
         a[5 + 4] ^= array[(4 + 4) % 5] ^ array[(4 + 1) % 5].rotate_left(1);
-        a[10 + 4] ^= array[(4 + 4) % 5] ^ array[(4 + 1) % 5].rotate_left(1);
+        a[14] ^= array[(4 + 4) % 5] ^ array[(4 + 1) % 5].rotate_left(1);
         a[15 + 4] ^= array[(4 + 4) % 5] ^ array[(4 + 1) % 5].rotate_left(1);
-        a[20 + 4] ^= array[(4 + 4) % 5] ^ array[(4 + 1) % 5].rotate_left(1);
+        a[24] ^= array[(4 + 4) % 5] ^ array[(4 + 1) % 5].rotate_left(1);
 
 
 
@@ -246,16 +246,16 @@ pub fn keccakf(a: &mut [u64; PLEN]) {
 
 
         array[0] = a[0];
-        array[1] = a[0 + 1];
-        array[2] = a[0 + 2];
-        array[3] = a[0 + 3];
-        array[4] = a[0 + 4];
+        array[1] = a[1];
+        array[2] = a[2];
+        array[3] = a[3];
+        array[4] = a[4];
 
-        a[0 + 0] = array[0] ^ ((!array[(0 + 1) % 5]) & (array[(0 + 2) % 5]));
-        a[0 + 1] = array[1] ^ ((!array[(1 + 1) % 5]) & (array[(1 + 2) % 5]));
-        a[0 + 2] = array[2] ^ ((!array[(2 + 1) % 5]) & (array[(2 + 2) % 5]));
-        a[0 + 3] = array[3] ^ ((!array[(3 + 1) % 5]) & (array[(3 + 2) % 5]));
-        a[0 + 4] = array[4] ^ ((!array[(4 + 1) % 5]) & (array[(4 + 2) % 5]));
+        a[0] = array[0] ^ ((!array[(1) % 5]) & (array[(2) % 5]));
+        a[1] = array[1] ^ ((!array[(1 + 1) % 5]) & (array[(1 + 2) % 5]));
+        a[2] = array[2] ^ ((!array[(2 + 1) % 5]) & (array[(2 + 2) % 5]));
+        a[3] = array[3] ^ ((!array[(3 + 1) % 5]) & (array[(3 + 2) % 5]));
+        a[4] = array[4] ^ ((!array[(4 + 1) % 5]) & (array[(4 + 2) % 5]));
 
 
         array[0] = a[5];
@@ -264,7 +264,7 @@ pub fn keccakf(a: &mut [u64; PLEN]) {
         array[3] = a[5 + 3];
         array[4] = a[5 + 4];
 
-        a[5 + 0] = array[0] ^ ((!array[(0 + 1) % 5]) & (array[(0 + 2) % 5]));
+        a[5 + 0] = array[0] ^ ((!array[(1) % 5]) & (array[(2) % 5]));
         a[5 + 1] = array[1] ^ ((!array[(1 + 1) % 5]) & (array[(1 + 2) % 5]));
         a[5 + 2] = array[2] ^ ((!array[(2 + 1) % 5]) & (array[(2 + 2) % 5]));
         a[5 + 3] = array[3] ^ ((!array[(3 + 1) % 5]) & (array[(3 + 2) % 5]));
@@ -272,16 +272,16 @@ pub fn keccakf(a: &mut [u64; PLEN]) {
 
 
         array[0] = a[10];
-        array[1] = a[10 + 1];
-        array[2] = a[10 + 2];
-        array[3] = a[10 + 3];
-        array[4] = a[10 + 4];
+        array[1] = a[11];
+        array[2] = a[12];
+        array[3] = a[13];
+        array[4] = a[14];
 
-        a[10 + 0] = array[0] ^ ((!array[(0 + 1) % 5]) & (array[(0 + 2) % 5]));
-        a[10 + 1] = array[1] ^ ((!array[(1 + 1) % 5]) & (array[(1 + 2) % 5]));
-        a[10 + 2] = array[2] ^ ((!array[(2 + 1) % 5]) & (array[(2 + 2) % 5]));
-        a[10 + 3] = array[3] ^ ((!array[(3 + 1) % 5]) & (array[(3 + 2) % 5]));
-        a[10 + 4] = array[4] ^ ((!array[(4 + 1) % 5]) & (array[(4 + 2) % 5]));
+        a[10] = array[0] ^ ((!array[(1) % 5]) & (array[(2) % 5]));
+        a[11] = array[1] ^ ((!array[(1 + 1) % 5]) & (array[(1 + 2) % 5]));
+        a[12] = array[2] ^ ((!array[(2 + 1) % 5]) & (array[(2 + 2) % 5]));
+        a[13] = array[3] ^ ((!array[(3 + 1) % 5]) & (array[(3 + 2) % 5]));
+        a[14] = array[4] ^ ((!array[(4 + 1) % 5]) & (array[(4 + 2) % 5]));
 
 
         array[0] = a[15];
@@ -290,7 +290,7 @@ pub fn keccakf(a: &mut [u64; PLEN]) {
         array[3] = a[15 + 3];
         array[4] = a[15 + 4];
 
-        a[15 + 0] = array[0] ^ ((!array[(0 + 1) % 5]) & (array[(0 + 2) % 5]));
+        a[15 + 0] = array[0] ^ ((!array[(1) % 5]) & (array[(2) % 5]));
         a[15 + 1] = array[1] ^ ((!array[(1 + 1) % 5]) & (array[(1 + 2) % 5]));
         a[15 + 2] = array[2] ^ ((!array[(2 + 1) % 5]) & (array[(2 + 2) % 5]));
         a[15 + 3] = array[3] ^ ((!array[(3 + 1) % 5]) & (array[(3 + 2) % 5]));
@@ -298,16 +298,16 @@ pub fn keccakf(a: &mut [u64; PLEN]) {
 
 
         array[0] = a[20];
-        array[1] = a[20 + 1];
-        array[2] = a[20 + 2];
-        array[3] = a[20 + 3];
-        array[4] = a[20 + 4];
+        array[1] = a[21];
+        array[2] = a[22];
+        array[3] = a[23];
+        array[4] = a[24];
 
-        a[20 + 0] = array[0] ^ ((!array[(0 + 1) % 5]) & (array[(0 + 2) % 5]));
-        a[20 + 1] = array[1] ^ ((!array[(1 + 1) % 5]) & (array[(1 + 2) % 5]));
-        a[20 + 2] = array[2] ^ ((!array[(2 + 1) % 5]) & (array[(2 + 2) % 5]));
-        a[20 + 3] = array[3] ^ ((!array[(3 + 1) % 5]) & (array[(3 + 2) % 5]));
-        a[20 + 4] = array[4] ^ ((!array[(4 + 1) % 5]) & (array[(4 + 2) % 5]));
+        a[20] = array[0] ^ ((!array[(1) % 5]) & (array[(2) % 5]));
+        a[21] = array[1] ^ ((!array[(1 + 1) % 5]) & (array[(1 + 2) % 5]));
+        a[22] = array[2] ^ ((!array[(2 + 1) % 5]) & (array[(2 + 2) % 5]));
+        a[23] = array[3] ^ ((!array[(3 + 1) % 5]) & (array[(3 + 2) % 5]));
+        a[24] = array[4] ^ ((!array[(4 + 1) % 5]) & (array[(4 + 2) % 5]));
 
 
         // Iota

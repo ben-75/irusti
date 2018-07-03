@@ -2,8 +2,6 @@ use crossbeam;
 use num_cpus;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
-use sponge::curl::Curl;
-use sponge::curl::*;
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum State {
@@ -279,9 +277,10 @@ mod tests {
 
     use rand::{thread_rng, Rng};
     use std::time::{Duration, Instant};
+    use sponge::curl::*;
 
     const HASH_SIZE: usize = 243;
-    const MIN_WEIGHT_MAGNITUDE: usize = 14;
+    const MIN_WEIGHT_MAGNITUDE: usize = 9;
 
     #[test]
     fn test_cancel() {

@@ -5,8 +5,6 @@
 
 use sponge::sponge::Sponge;
 use sponge::keccak::Keccak;
-//use sponge::kerl_converters::*;
-use converter::trytes_to_trits;
 const BIT_HASH_LENGTH: usize = 384;
 const BYTE_HASH_LENGTH: usize = BIT_HASH_LENGTH / 8;
 

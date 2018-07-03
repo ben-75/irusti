@@ -1,12 +1,12 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 use txhash::TxHash;
 use transaction::Transaction;
-const MAX_TIMESTAMP_FUTURE_SEC :u64 = 2*60*60;
-const MAX_TIMESTAMP_FUTURE_MS  :u64 = MAX_TIMESTAMP_FUTURE_SEC*1000;
 use transaction::TRINARY_SIZE;
 use transaction::SUPPLY;
 use sponge::curl::SpongeMode;
 
+const MAX_TIMESTAMP_FUTURE_SEC :u64 = 2*60*60;
+const MAX_TIMESTAMP_FUTURE_MS  :u64 = MAX_TIMESTAMP_FUTURE_SEC*1000;
 const ERR_INVALID_TRANSACTION_TRITS : &'static str = "Invalid transaction trits";
 const ERR_INVALID_TIMESTAMP : &'static str = "Invalid timestamp";
 const ERR_INVALID_VALUE : &'static str = "Invalid value";

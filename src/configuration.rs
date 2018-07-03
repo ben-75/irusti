@@ -7,30 +7,30 @@ use self::ini::Ini;
 use std::option::Option;
 use clap::{App,ArgMatches};
 
-pub const MAINNET_COORDINATOR_ADDRESS: &'static str =
+pub const MAINNET_COORDINATOR_ADDRESS: &str =
     "KPWCHICGJZXKE9GSUDXZYUAPLHAKAHYHDXNPHENTERYMMBQOPSQIDENXKLKCEYCPVTZQLEEJVYJZV9BWU";
-pub const TESTNET_COORDINATOR_ADDRESS: &'static str =
+pub const TESTNET_COORDINATOR_ADDRESS: &str =
     "EQQFCZBIHRHWPXKMTOLMYUYPCN9XLMJPYZVFJSAY9FQHCCLWTOLLUGKKMXYFDBOOYFBLBI9WUEILGECYM";
-const MAINNET_SNAPSHOT_FILE: &'static str = "/snapshotMainnet.txt";
-const TESTNET_SNAPSHOT_FILE: &'static str = "/snapshotTestnet.txt";
-const MAINNET_SNAPSHOT_SIG_FILE: &'static str = "/snapshotMainnet.sig";
+const MAINNET_SNAPSHOT_FILE: &str = "/snapshotMainnet.txt";
+const TESTNET_SNAPSHOT_FILE: &str = "/snapshotTestnet.txt";
+const MAINNET_SNAPSHOT_SIG_FILE: &str = "/snapshotMainnet.sig";
 
-const PREVIOUS_EPOCHS_SPENT_ADDRESSES_TXT: &'static str = "/previousEpochsSpentAddresses.txt";
-const PREVIOUS_EPOCH_SPENT_ADDRESSES_SIG: &'static str = "/previousEpochsSpentAddresses.sig";
-const MAINNET_MILESTONE_START_INDEX: &'static str = "426550";
-const TESTNET_MILESTONE_START_INDEX: &'static str = "434525";
-const MAINNET_NUM_KEYS_IN_MILESTONE: &'static str = "20";
-const TESTNET_NUM_KEYS_IN_MILESTONE: &'static str = "22";
-const GLOBAL_SNAPSHOT_TIME: &'static str = "1525042800";
-const TESTNET_GLOBAL_SNAPSHOT_TIME: &'static str = "1522306500";
+const PREVIOUS_EPOCHS_SPENT_ADDRESSES_TXT: &str = "/previousEpochsSpentAddresses.txt";
+const PREVIOUS_EPOCH_SPENT_ADDRESSES_SIG: &str = "/previousEpochsSpentAddresses.sig";
+const MAINNET_MILESTONE_START_INDEX: &str = "426550";
+const TESTNET_MILESTONE_START_INDEX: &str = "434525";
+const MAINNET_NUM_KEYS_IN_MILESTONE: &str = "20";
+const TESTNET_NUM_KEYS_IN_MILESTONE: &str = "22";
+const GLOBAL_SNAPSHOT_TIME: &str = "1525042800";
+const TESTNET_GLOBAL_SNAPSHOT_TIME: &str = "1522306500";
 
 
-const MAINNET_MWM: &'static str = "14";
-const TESTNET_MWM: &'static str = "9";
-const PACKET_SIZE: &'static str = "1650";
-const TESTNET_PACKET_SIZE: &'static str = "1653";
-const REQ_HASH_SIZE: &'static str = "46";
-const TESTNET_REQ_HASH_SIZE: &'static str = "49";
+const MAINNET_MWM: &str = "14";
+const TESTNET_MWM: &str = "9";
+const PACKET_SIZE: &str = "1650";
+const TESTNET_PACKET_SIZE: &str = "1653";
+const REQ_HASH_SIZE: &str = "46";
+const TESTNET_REQ_HASH_SIZE: &str = "49";
 
 /// The configuration parameters of IRustI.
 /// Default values can overidden in an ini file and on the command line (command line parameters
@@ -174,7 +174,7 @@ impl Configuration {
         if tmp.is_some() {
             return Some(self.ini_file_param.get_from(Some("IRI"), k).unwrap());
         }
-        return None;
+        None
     }
 
     pub fn get_param(&self, param :DefaultConfSettings) ->Option<String> {
@@ -186,7 +186,7 @@ impl Configuration {
     }
 
     fn get_conf_value(&self, k :&str) ->Option<String> {
-        return match self.get_command_line_value(k) {
+        match self.get_command_line_value(k) {
             Some(x) => Some(x.to_string()),
             _ => {
                 match self.get_ini_value(k) {
@@ -200,14 +200,14 @@ impl Configuration {
                     }
                 }
             }
-        };
+        }
     }
 
     fn get_command_line_flag(&self, k :&str) -> Option<bool> {
         if self.matches.is_present(k)  {
             return Some(true)
         }
-        return None;
+        None
     }
 
     fn get_ini_flag(&self, k :&str) ->Option<bool> {
@@ -219,7 +219,7 @@ impl Configuration {
     }
 
     pub fn get_conf_flag(&self, k :&str) ->bool {
-        return match self.get_command_line_flag(k) {
+        match self.get_command_line_flag(k) {
             Some(x) => Some(x).unwrap(),
             _ => {
                 match self.get_ini_flag(k) {
@@ -233,7 +233,7 @@ impl Configuration {
                     }
                 }
             }
-        };
+        }
     }
 
     pub fn string_it(&self, k :&str) -> Option<String> {
