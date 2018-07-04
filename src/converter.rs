@@ -306,7 +306,7 @@ pub fn get_trit(bytes :&Vec<i8>,byte_index :usize, bit_offset :u8)->i8 {
     }
 }
 
-pub fn to_string(bytes :&Vec<i8>, mut tryte_count :i32) -> String {
+pub fn to_string(bytes :&[i8], mut tryte_count :i32) -> String {
     let mut response:String = "".to_string();
     let mut remaining_count = 0;
     let mut b0 :i8 = 0;
@@ -392,8 +392,7 @@ pub  fn trits_from_bytes<'a>(bytes :&[i8], trits: & 'a mut[i8], byte_idx :usize,
             response.extend_from_slice(&[t0,t1,t2,t3,t4]);
             byte_index +=1;
             trit_index +=5;
-        }else{
-            if offset>0 {
+        }else if offset>0 {
                 if offset==1 {
                     response.extend_from_slice(&[t1,t2,t3,t4]);
                     byte_index +=1;
@@ -433,7 +432,7 @@ pub  fn trits_from_bytes<'a>(bytes :&[i8], trits: & 'a mut[i8], byte_idx :usize,
                 }
                 trit_index = trits_count;
             }
-        }
+
     }
     trits.copy_from_slice(response.as_ref());
     trits
@@ -470,7 +469,7 @@ pub fn bytes_to_trits(bytes :&[i8], tryte_count :usize) -> Vec<i8> {
     response
 }
 
-pub fn trits_to_bytes(trits :&Vec<i8>) -> (Vec<i8>, usize) {
+pub fn trits_to_bytes(trits :&[i8]) -> (Vec<i8>, usize) {
     let trits_count = trits.len();
     let byte_count = if trits_count % 3 > 0 {trits_count/3 +1} else {trits_count/3};
     let mut response :Vec<i8> = Vec::with_capacity(byte_count);
@@ -505,7 +504,7 @@ fn trit_to_i8((t0,t1,t2,t3,t4) :(i8,i8,i8,i8,i8))->i8{
     t0+t1*3+t2*9+t3*27+t4*81
 }
 
-pub fn trytes_to_trits(trytes :String) -> Vec<i8> {
+pub fn trytes_to_trits(trytes :&str) -> Vec<i8> {
     let sz = 3*trytes.len();
     let mut integers :Vec<i8> = Vec::with_capacity(sz);
     for c in trytes.chars() {
@@ -620,7 +619,7 @@ mod tests {
         for i in 0..40 {
             assert_eq!(c[i],v[i]);
         }
-        let true_trits = trytes_to_trits("YGYQIVD".to_string());
+        let true_trits = trytes_to_trits("YGYQIVD");
         for i in 0..21 {
             assert_eq!(true_trits[i],v[i]);
         }

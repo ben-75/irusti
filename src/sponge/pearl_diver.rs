@@ -329,7 +329,7 @@ mod tests {
             }
         }
         println!("{:?}", now.elapsed()/count);
-        println!("{:?} pow/sec", count as u64/now.elapsed().as_secs());
+        println!("{:?} pow/sec", (count as u64/now.elapsed().as_secs()));
 
     }
 }

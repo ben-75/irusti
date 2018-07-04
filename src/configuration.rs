@@ -267,7 +267,7 @@ impl Configuration {
         self.integer(d.to_string().as_ref())
     }
 
-    pub fn long_num_param(&self, d : DefaultConfSettings) -> i64 {
+    pub fn long_num_param(&self, d : &DefaultConfSettings) -> i64 {
         self.long_num(d.to_string().as_ref())
     }
 

@@ -219,16 +219,13 @@ fn main() {
         configuration.print();
     }
 
-    if configuration.get_param(&configuration::DefaultConfSettings::COORDINATOR).is_some() {
-        if !configuration.booling_param(&configuration::DefaultConfSettings::TESTNET){
-            warn!("coordinator-address is ignored. (it requires the --testnet flag)");
-        }
+    if configuration.get_param(&configuration::DefaultConfSettings::COORDINATOR).is_some() && !configuration.booling_param(&configuration::DefaultConfSettings::TESTNET){
+        warn!("coordinator-address is ignored. (it requires the --testnet flag)");
+
     }
 
-    if configuration.booling_param(&configuration::DefaultConfSettings::DontValidateTestnetMilestoneSig){
-        if !configuration.booling_param(&configuration::DefaultConfSettings::TESTNET){
-            warn!("testnet-no-coo-validation is ignored. (it requires the --testnet flag)");
-        }
+    if configuration.booling_param(&configuration::DefaultConfSettings::DontValidateTestnetMilestoneSig) && !configuration.booling_param(&configuration::DefaultConfSettings::TESTNET){
+         warn!("testnet-no-coo-validation is ignored. (it requires the --testnet flag)");
     }
 
     let db_path = Tangle::get_effective_path(configuration.get_param(&DefaultConfSettings::DbPath).unwrap(),

@@ -50,11 +50,10 @@ impl<'a,'b> TransactionRequester<'a,'b> {
             if milestone  {
                 self.milestone_transactions_to_request.remove(&hash);
                 self.milestone_transactions_to_request.insert(hash);
-            } else {
-                if !self.milestone_transactions_to_request.contains(&hash) && !self.transaction_to_request_is_full() {
+            } else  if !self.milestone_transactions_to_request.contains(&hash) && !self.transaction_to_request_is_full() {
                         self.transactions_to_request.insert(hash);
-                }
             }
+
         }
         self
     }
@@ -94,10 +93,8 @@ impl<'a,'b> TransactionRequester<'a,'b> {
             request_set.pop_front();
             first_unknown = first_unknown-1;
         }
-        if self.p_remove_transaction > 0_f32 {
-            if rand::random::<f32>() < self.p_remove_transaction {
-                request_set.pop_front();
-            }
+        if self.p_remove_transaction > 0_f32 && rand::random::<f32>() < self.p_remove_transaction {
+            request_set.pop_front();
         }
         response
     }

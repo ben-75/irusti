@@ -26,11 +26,9 @@ impl Tangle {
                 warn!("Enforce use of testnetdb on test net");
                 effective_db_path = "testnetdb".to_string();
             }
-        }else{
-            if effective_db_path.eq(&"testnetdb".to_string()) {
+        }else if effective_db_path.eq(&"testnetdb".to_string()) {
                 warn!("Enforce use of mainnetdb on main net");
                 effective_db_path = "mainnetdb".to_string();
-            }
         }
         effective_db_path
     }

@@ -104,7 +104,7 @@ mod tests {
 
 
             let size = 8019;
-            let mut in_trits = converter::trytes_to_trits(TRYTES.to_string());
+            let mut in_trits = converter::trytes_to_trits(TRYTES);
             let mut hash_trits = [0_i8; HASH_LENGTH];
             let mut curl = Curl::new_curl_p81();
             curl.absorb(in_trits);

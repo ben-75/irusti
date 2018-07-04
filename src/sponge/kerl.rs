@@ -315,7 +315,7 @@ mod tests {
     fn kerl_multi_squeeze_multi_absorb() {
         let mut trits = trytes_to_trits("G9JYBOMPUXHYHKSNRNMMSSZCSHOFYOYNZRSZMAAYWDYEIMVVOGKPJBVBM9TD\
 PULSFUNMTVXRKFIDOHUXXVYDLFSZYZTWQYTE9SPYYWYTXJYQ9IFGYOLZXWZBKWZN9QOOTBQMWMUBLEWUEEASRHRTNIQW\
-JQNDWRYLCA".to_string());
+JQNDWRYLCA");
 
         let mut kerl = Kerl::default();
         kerl.absorb(trits.as_mut());
@@ -332,8 +332,8 @@ JQNDWRYLCA".to_string());
 
     #[test]
     fn kerl_multi_squeeze() {
-        let mut trits: Vec<i8> = trytes_to_trits("9MIDYNHBWMBCXVDEFOFWINXTERALUKYYPPHKP9JJFGJEIUY9MUDVNFZHMMWZUYUSWAIOWEVTHNWMHANBH".to_string());
-//            "9MIDYNHBWMBCXVDEFOFWINXTERALUKYYPPHKP9JJFGJEIUY9MUDVNFZHMMWZUYUSWAIOWEVTHNWMHANBH"
+        let mut trits: Vec<i8> = trytes_to_trits("9MIDYNHBWMBCXVDEFOFWINXTERALUKYYPPHKP9JJFGJEIUY9MUDVNFZHMMWZUYUSWAIOWEVTHNWMHANBH");
+//             "9MIDYNHBWMBCXVDEFOFWINXTERALUKYYPPHKP9JJFGJEIUY9MUDVNFZHMMWZUYUSWAIOWEVTHNWMHANBH"
 //                .chars()
 //                .flat_map(char_to_trits)
 //                .cloned()
