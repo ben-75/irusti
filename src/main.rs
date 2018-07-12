@@ -6,6 +6,7 @@ extern crate linked_hash_set;
 extern crate rand;
 extern crate crossbeam;
 extern crate num_cpus;
+extern crate scoped_pool;
 
 use clap::{App, Arg};
 use configuration::Configuration;
@@ -15,6 +16,9 @@ use transaction_requester::TransactionRequester;
 use configuration::DefaultConfSettings;
 use tips_view_model::TipsViewModel;
 use zmq_wrapper::MessageQ;
+use network::tcp_server::start_tcp_server;
+use std::thread;
+use std::io;
 
 pub mod configuration;
 pub mod iota;
@@ -27,6 +31,7 @@ pub mod converter;
 pub mod transaction_validator;
 pub mod transaction;
 pub mod sponge;
+pub mod network;
 
 const APP_NAME : &str = "IRustI";
 const VERSION : &str = "1.4.2.4";
@@ -241,14 +246,41 @@ fn main() {
             Configuration::integer_param(&configuration, &DefaultConfSettings::ZmqPort),
             Configuration::booling_param(&configuration, &DefaultConfSettings::ZmqEnabled)
         );
+        let http_port = configuration.integer_param(&DefaultConfSettings::PORT);
+        thread::spawn(move||{
+            start_tcp_server(http_port);
+        });
         message_q.publish("hey there");
+
         {
             let transaction_requester = TransactionRequester::new(10000,
                                                                   configuration.floating_param(&DefaultConfSettings::PRemoveRequest),
                                                                   &tangle, &message_q);
             let iota = Iota::new(configuration);
+
+            println!("Enter command. (type h for help)");
+
+            let mut shutdown = false;
+            while !shutdown {
+            let mut input = String::new();
+            match io::stdin().read_line(&mut input) {
+                Ok(n) => {
+                    input = input.trim().to_string();
+                    if input=="h" {
+                        println!("Type 'q' to exit");
+                    }else if input=="q"{
+                        shutdown = true;
+                    }else{
+                        println!("Unknown command : '{}'", input);
+                    }
+                }
+                Err(error) => println!("error: {}", error),
+            }
+            }
+
             iota.shutdown();
         }
+
         message_q.shutdown();
     }
     Tangle::shutdown(db_path_copy);
