@@ -70,7 +70,6 @@ impl TxHash {
     }
 
     pub fn compute_from_bytes(bytes : &[i8], trit_count :usize, mode :SpongeMode) -> Result<TxHash,()> {
-        let sz = trit_count;
         let integers = bytes_to_trits(&bytes.to_vec(), trit_count);
 
         let mut curl = match mode {
