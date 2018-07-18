@@ -7,6 +7,8 @@ extern crate rand;
 extern crate crossbeam;
 extern crate num_cpus;
 extern crate scoped_pool;
+extern crate http_parser;
+extern crate serde_json;
 
 use clap::{App, Arg};
 use configuration::Configuration;
@@ -16,7 +18,7 @@ use transaction_requester::TransactionRequester;
 use configuration::DefaultConfSettings;
 use tips_view_model::TipsViewModel;
 use zmq_wrapper::MessageQ;
-use network::tcp_server::start_tcp_server;
+use network::http_server::start_tcp_server;
 use std::thread;
 use std::io;
 
