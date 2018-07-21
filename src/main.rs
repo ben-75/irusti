@@ -9,6 +9,9 @@ extern crate num_cpus;
 extern crate scoped_pool;
 extern crate http_parser;
 extern crate serde_json;
+#[macro_use]
+extern crate serde_derive;
+extern crate serde;
 
 use clap::{App, Arg};
 use configuration::Configuration;

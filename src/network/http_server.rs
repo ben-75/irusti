@@ -14,6 +14,9 @@ use http_parser::{HttpParserCallback, CallbackResult, ParseAction, HttpParser, H
 use serde_json::{Value, Error};
 use serde_json::from_slice;
 use serde_json::from_value;
+use serde_json::to_string;
+
+use network::node_info::NodeInfo;
 
 pub fn start_tcp_server(tcp_port :i32) {
     let listener = TcpListener::bind(format!("127.0.0.1:{}",tcp_port)).unwrap();
@@ -52,20 +55,6 @@ fn handle_connection(mut stream: TcpStream) {
     parser.execute(&mut http_response, buffer.as_ref());
 
     println!("Request: {}", String::from_utf8_lossy(&buffer[..]));
-
-//    if buffer.starts_with(get_sleep) {
-//        thread::sleep(Duration::from_secs(5));
-//
-//        let response = "HTTP/1.1 200 OK\r\n\r\nHello Rust after 5";
-//
-//        stream.write(response.as_bytes()).unwrap();
-//        stream.flush().unwrap();
-//    }else{
-//        let response = "HTTP/1.1 200 OK\r\n\r\nHello Rust";
-//
-//        stream.write(response.as_bytes()).unwrap();
-//        stream.flush().unwrap();
-//    }
 
     let response = format!("HTTP/1.1 {} OK\
     \r\nAccess-Control-Allow-Origin: *\
@@ -130,9 +119,7 @@ impl HttpParserCallback for Callback {
             Err(_) => self.response_code = 400,
             Ok(x) => {
                 self.json = x;
-                //self.response_body = self.json["command"].to_string();
-                let command = self.json["command"].as_str();
-                match command {
+                match self.json["command"].as_str() {
                     None => {
                         self.response_code=400;
                     }
@@ -203,9 +190,11 @@ impl Callback {
 
     }
 
-    pub fn get_node_info(&self) {
+    pub fn get_node_info(&mut self) {
         debug!("get_node_info");
-
+        let node_info = NodeInfo::new();
+        let serialized = to_string(&node_info).unwrap();
+        self.response_body = serialized;
     }
 
     pub fn get_tips(&self) {
